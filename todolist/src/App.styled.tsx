@@ -29,7 +29,7 @@ export const RowBox = styled.div`
 export const Input = styled.input`
   padding-left: 20px;
   width: 450px;
-  height: 50px;
+  height: 52px;
   border: none;
   outline: none;
   font-size: 20px;
@@ -62,15 +62,19 @@ export const InputButton = styled.button`
   font-weight: 100;
 `;
 
+export const EditDiv = styled.div`
+  width: 380px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+`;
+
 export const EditInput = styled.input`
   width: 400px;
   height: 36px;
   font-size: 18px;
   font-weight: 100;
   outline: none;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
 `;
 
 export const List = styled.ul`

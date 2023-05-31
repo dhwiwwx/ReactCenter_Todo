@@ -14,6 +14,7 @@ import {
   ButtonContainer,
   InputButton,
   EditInput,
+  EditDiv,
 } from "./App.styled";
 
 function App() {
@@ -96,15 +97,18 @@ function App() {
           };
 
           const toggleEditTodo = () => {
+            setEditName(name);
             setEditId(isEdit ? undefined : id);
           };
           return (
             <Todo key={id}>
-              {isEdit ? (
-                <EditInput defaultValue={name} onChange={handleEditName} />
-              ) : (
-                name
-              )}
+              <EditDiv>
+                {isEdit ? (
+                  <EditInput value={editName} onChange={handleEditName} />
+                ) : (
+                  name
+                )}
+              </EditDiv>
               <ButtonContainer>
                 {!isEdit && (
                   <InputButton onClick={deleteTodo}>삭제</InputButton>
