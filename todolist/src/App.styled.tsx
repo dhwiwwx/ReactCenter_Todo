@@ -1,6 +1,7 @@
 import styled from "styled-components";
 
 export const Title = styled.h1`
+  margin: 25px 0;
   font-size: 40px;
   font-weight: 200;
   color: #fff;
@@ -36,7 +37,7 @@ export const Input = styled.input`
 `;
 
 export const Button = styled.button`
-  width: 130px;
+  width: 120px;
   height: 52px;
   border: none;
   font-size: 18px;
@@ -47,6 +48,29 @@ export const Button = styled.button`
     transition: 0.3s;
     color: #fff;
   }
+  :nth-child(3):hover {
+    background-color: #ff6b6b;
+    transition: 0.3s;
+    color: #fff;
+  }
+`;
+
+export const InputButton = styled.button`
+  width: 80px;
+  height: 40px;
+  font-size: 18px;
+  font-weight: 100;
+`;
+
+export const EditInput = styled.input`
+  width: 400px;
+  height: 36px;
+  font-size: 18px;
+  font-weight: 100;
+  outline: none;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 `;
 
 export const List = styled.ul`
@@ -67,7 +91,7 @@ export const Todo = styled.li`
   align-items: center;
   justify-content: space-between;
   margin: 0 auto;
-  width: 80%;
+  width: 550px;
   height: 60px;
   font-size: 25px;
   font-weight: 100;
@@ -86,4 +110,9 @@ export const Remove = styled.div`
   &:hover {
     color: #ff6b6b;
   }
+`;
+
+export const ButtonContainer = styled.div`
+  display: flex;
+  align-items: center;
 `;
