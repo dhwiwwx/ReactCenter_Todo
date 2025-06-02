@@ -8,7 +8,7 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<IssueList />} />
+        <Route path="/list" element={<IssueList />} />
         <Route path="/register" element={<Register />} />
       </Routes>
     </BrowserRouter>

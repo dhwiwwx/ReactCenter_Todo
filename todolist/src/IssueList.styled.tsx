@@ -13,7 +13,6 @@ export const Title = styled.h1`
 export const Container = styled.div`
   display: flex;
   flex-direction: column;
-  width: 1000px;
   height: 100vh;
   margin: 0 auto;
   background-color: #22254b;
@@ -63,10 +62,21 @@ export const InputButton = styled.button`
 `;
 
 export const EditDiv = styled.div`
-  width: 380px;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;           // 텍스트 간 간격
+  padding: 12px;
+  color: white;
+
+  strong {
+    font-size: 16px;
+    font-weight: bold;
+  }
+
+  p {
+    margin: 0;
+    font-size: 14px;
+  }
 `;
 
 export const EditInput = styled.input`
@@ -79,9 +89,9 @@ export const EditInput = styled.input`
 
 export const List = styled.ul`
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: flex-start;
-
+  gap: 10px;
   width: 700px;
   margin: 0 auto;
   height: 80%;
@@ -90,16 +100,12 @@ export const List = styled.ul`
   box-shadow: 19px 17px 2px 1px rgba(0, 0, 0, 0.2);
 `;
 
-export const Todo = styled.li`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin: 0 auto;
-  width: 550px;
-  height: 60px;
-  font-size: 25px;
-  font-weight: 100;
-  border-bottom: 1px solid #fff;
+export const Todo = styled.div`
+  background-color: #2e2e5e;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 10px;
+  word-break: break-word;
 `;
 
 export const Remove = styled.div`
@@ -120,3 +126,19 @@ export const ButtonContainer = styled.div`
   display: flex;
   align-items: center;
 `;
+
+export const NoSelect = styled.div`
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+`;
+
+export const HorizontalRow = styled.div`
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  gap: 10px;
+  align-items: center;
+`;
+

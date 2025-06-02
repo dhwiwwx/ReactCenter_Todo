@@ -4,21 +4,27 @@ import {
   Container,
   Input,
   List,
-  RowBox,
+  // RowBox 대신 아래 스타일을 사용
   Title,
   Todo,
   EditDiv,
   Button,
+  NoSelect,         // 추가 import
+  HorizontalRow,    // 추가 import
 } from "./IssueList.styled";
 import { useNavigate } from "react-router-dom";
 
-function IssueList() {
-  interface Issue {
-    id: number;
-    title: string;
-    description: string;
-  }
+import { db } from "./firebase";
+import { collection, getDocs, query, orderBy } from "firebase/firestore";
 
+interface Issue {
+  id: string;
+  title: string;
+  description: string;
+  priority: string;
+}
+
+function IssueList() {
   const [issues, setIssues] = useState<Issue[]>([]);
   const [searchInput, setSearchInput] = useState<string>("");
   const [searchKeyword, setSearchKeyword] = useState<string>("");
@@ -26,24 +32,34 @@ function IssueList() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    try {
-      const data = JSON.parse(localStorage.getItem("issues") || "[]");
-      setIssues(data);
-    } catch (e) {
-      console.error("Failed to load issues:", e);
-    }
+    const fetchIssues = async () => {
+      try {
+        const q = query(collection(db, "issues"), orderBy("createdAt", "desc"));
+        const querySnapshot = await getDocs(q);
+        const data = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as Issue[];
+
+        setIssues(data);
+      } catch (e) {
+        console.error("이슈 불러오기 실패:", e);
+      }
+    };
+
+    fetchIssues();
   }, []);
 
   const handleSearch = () => {
-    setSearchKeyword(searchInput);
+    setSearchKeyword(searchInput.trim());
 
-    const tempFiltered = issues.filter(
+    const results = issues.filter(
       ({ title, description }) =>
         title.toLowerCase().includes(searchInput.toLowerCase()) ||
         description.toLowerCase().includes(searchInput.toLowerCase())
     );
 
-    if (tempFiltered.length === 0) {
+    if (results.length === 0) {
       alert("검색 결과가 없습니다.");
     }
   };
@@ -57,7 +73,9 @@ function IssueList() {
   return (
     <Container>
       <Title>이슈 목록</Title>
-      <RowBox>
+
+      {/* 가로 정렬 적용 */}
+      <HorizontalRow>
         <Input
           placeholder="이슈 제목 또는 설명"
           value={searchInput}
@@ -67,14 +85,19 @@ function IssueList() {
         />
         <Button onClick={handleSearch}>검색</Button>
         <Button onClick={() => navigate("/register")}>등록</Button>
-      </RowBox>
+      </HorizontalRow>
+
       <List>
-        {filteredIssues.map(({ id, title, description }) => (
+        {filteredIssues.map(({ id, title, description, priority }) => (
           <Todo key={id}>
-            <EditDiv>
-              <strong>{title}</strong>
-              <p>{description}</p>
-            </EditDiv>
+            {/* 텍스트 드래그 방지 적용 */}
+            <NoSelect>
+              <EditDiv>
+                <strong>{title}</strong>
+                <p>{description}</p>
+                <p>우선순위: {priority}</p>
+              </EditDiv>
+            </NoSelect>
           </Todo>
         ))}
       </List>
