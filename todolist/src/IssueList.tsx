@@ -4,16 +4,16 @@ import {
   Container,
   Input,
   List,
-  // RowBox 대신 아래 스타일을 사용
   Title,
   Todo,
   EditDiv,
   Button,
-  NoSelect,         // 추가 import
-  HorizontalRow,    // 추가 import
+  NoSelect,       
+  HorizontalRow,  
 } from "./IssueList.styled";
 import { useNavigate } from "react-router-dom";
-
+import { signOut } from "firebase/auth";
+import { auth } from "./firebase";
 import { db } from "./firebase";
 import { collection, getDocs, query, orderBy } from "firebase/firestore";
 
@@ -72,8 +72,10 @@ function IssueList() {
 
   return (
     <Container>
+      <HorizontalRow>
       <Title>이슈 목록</Title>
-
+      <Button onClick={() => signOut(auth)}>로그아웃</Button>
+      </HorizontalRow>
       {/* 가로 정렬 적용 */}
       <HorizontalRow>
         <Input

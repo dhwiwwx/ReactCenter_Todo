@@ -134,11 +134,17 @@ export const NoSelect = styled.div`
   -ms-user-select: none;
 `;
 
+
 export const HorizontalRow = styled.div`
   display: flex;
   flex-direction: row;
   justify-content: center;
   gap: 10px;
   align-items: center;
+  
+  :nth-child(1) {
+  
+  }
+
 `;
 
