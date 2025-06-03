@@ -2,8 +2,9 @@
 
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
-import { getFirestore } from "firebase/firestore"; // Firestore 추가
+import { getFirestore } from "firebase/firestore"; 
 import { getAuth } from "firebase/auth";
+import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBvGr6jjKDIqjllAPunnJSDHq7Ojr63s0c",
@@ -24,3 +25,4 @@ const db = getFirestore(app);
 
 export { db };
 export const auth = getAuth(app);
+export const storage = getStorage(app);
