@@ -110,10 +110,10 @@ export const EditInput = styled.input`
   outline: none;
 `;
 
-export const List = styled.ul`
+export const List = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); /* ⬅️ 카드 너비 넓힘 */
+  gap: 20px;
   width: 90%;
   max-width: 1000px;
   margin: 24px auto 0 auto;
@@ -124,13 +124,18 @@ export const List = styled.ul`
 `;
 
 export const Todo = styled.div`
-  background-color: #2e2e5e;
-  border-radius: 8px;
-  padding: 16px;
-  width: 165px;
-  min-height: 100px;
-  box-sizing: border-box;
-  word-break: break-word;
+  background-color: #2c2f4a;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(25, 18, 18, 0.1);
+  width: 260px; /* 기존보다 넓게! */
+  min-height: 150px;
+  transition: transform 0.2s;
+  cursor: pointer;
+
+  &:hover {
+    transform: translateY(-4px);
+  }
 `;
 
 export const Remove = styled.div`
@@ -228,6 +233,7 @@ export const SearchInput = styled.input`
   width: 100%;
   max-width: 360px;
   user-select: none;
+  caret-color: transparent;
 
   &::placeholder {
     color: #adb5bd;
@@ -237,6 +243,7 @@ export const SearchInput = styled.input`
     outline: none;
     box-shadow: 0 0 0 2px #4dabf7;
     background-color: #2b2e55;
+     caret-color: #4dabf7; /* 포커스일 때 커서 보이게 */
   }
 
   transition: all 0.2s;
@@ -266,5 +273,84 @@ export const SortSelect = styled.select`
 
   &::-ms-expand {
     display: none;
+  }
+`;
+
+export const CardWrapper = styled.div`
+  position: relative;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: white;
+`;
+
+export const CardTitle = styled.h3`
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0;
+`;
+
+export const CardDescription = styled.p`
+  font-size: 14px;
+  margin: 0;
+  line-height: 1.4;
+  color: #ccc;
+`;
+
+export const CardMeta = styled.span`
+  font-size: 13px;
+  color: #aaa;
+  margin-top: auto;
+`;
+
+export const StatusBadge = styled.div<{ status: string }>`
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  padding: 6px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  background-color: ${({ status }) =>
+    status === "완료"
+      ? "#81c784"
+      : status === "진행 중"
+      ? "#64b5f6"
+      : "#ffd54f"};
+  color: ${({ status }) =>
+    status === "완료"
+      ? "#1b5e20"
+      : status === "진행 중"
+      ? "#0d47a1"
+      : "#5d4037"};
+`;
+
+export const PaginationWrapper = styled.div`
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin: 24px 0;
+`;
+
+export const PageButton = styled.button<{ active?: boolean }>`
+  background-color: ${({ active }) => (active ? "#ffd447" : "#2c2f50")};
+  color: ${({ active }) => (active ? "#1c1c1c" : "#fff")};
+  border: none;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 14px;
+  font-weight: ${({ active }) => (active ? "bold" : "normal")};
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    background-color: #ffd447;
+    color: #1c1c1c;
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: default;
   }
 `;

@@ -87,3 +87,17 @@ export const InfoText = styled.p<{ color: string }>`
   margin: 4px 0 10px 4px;
   color: ${({ color }) => color};
 `;
+export const LinkButton = styled.button`
+  background: none;
+  border: none;
+  color:rgb(184, 193, 229);
+  font-size: 14px;
+  cursor: pointer;
+  margin-top: 12px;
+  text-decoration: underline;
+  transition: color 0.2s;
+
+  &:hover {
+    color: #748ffc;
+  }
+`;

@@ -1,4 +1,3 @@
-// IssueRegister.jsx (또는 IssueRegister.tsx)
 import React, { useEffect, useState } from "react";
 import {
   RegisterContainer,
@@ -51,6 +50,7 @@ function IssueRegister() {
     if (!title.trim()) return "제목을 입력해주세요.";
     if (!reporter.trim()) return "작성자 이름을 입력해주세요.";
     if (!description.trim()) return "상세 내용을 입력해주세요.";
+    if (!deadline.trim()) return "마감일을 선택해주세요.";
     return null;
   };
 
@@ -72,6 +72,7 @@ function IssueRegister() {
         deadline: deadline ? new Date(deadline).toISOString() : null,
         createdAt: Timestamp.now(),
         createdAtFormatted,
+        status: "할 일",
       });
       alert("이슈가 성공적으로 등록되었습니다.");
       navigate("/list");
@@ -108,14 +109,20 @@ function IssueRegister() {
           />
 
           {/* 우선순위 */}
-          <Select value={priority} onChange={(e) => setPriority(e.target.value)}>
+          <Select
+            value={priority}
+            onChange={(e) => setPriority(e.target.value)}
+          >
             <option value="높음">높음</option>
             <option value="중간">중간</option>
             <option value="낮음">낮음</option>
           </Select>
 
           {/* 카테고리 */}
-          <Select value={category} onChange={(e) => setCategory(e.target.value)}>
+          <Select
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+          >
             <option value="버그">버그</option>
             <option value="기능 요청">기능 요청</option>
             <option value="UI 개선">UI 개선</option>
@@ -124,11 +131,7 @@ function IssueRegister() {
           </Select>
 
           {/* 생성일 (읽기 전용) */}
-          <Input
-            value={createdAtFormatted}
-            disabled
-            readOnly
-          />
+          <Input value={createdAtFormatted} disabled readOnly />
 
           {/* 마감일 선택 */}
           <DeadlineInput

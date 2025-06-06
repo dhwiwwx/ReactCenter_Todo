@@ -14,7 +14,7 @@ import {
   Input,
   Button,
 } from "./Login.styled";
-import { CheckButton, EmailInput, EmailRow } from "./Signup.styled";
+import { CheckButton, EmailInput, EmailRow, LinkButton } from "./Signup.styled";
 
 function Signup() {
   const [email, setEmail] = useState("");
@@ -105,6 +105,9 @@ function Signup() {
         />
 
         <Button onClick={handleSignup}>회원가입</Button>
+        <LinkButton onClick={() => navigate("/")}>
+        이미 계정이 있으신가요? 로그인
+      </LinkButton>
       </LoginBox>
     </Container>
   );
