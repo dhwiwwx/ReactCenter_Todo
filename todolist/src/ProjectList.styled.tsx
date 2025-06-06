@@ -95,3 +95,37 @@ export const DeleteButton = styled.button`
     color: #ff3b3b;
   }
 `;
+
+export const ActionGroup = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+`;
+
+export const PinButton = styled.button`
+  background: none;
+  border: none;
+  color: #ffd700;
+  cursor: pointer;
+
+  &:hover {
+    transform: scale(1.1);
+  }
+`;
+
+export const EditInput = styled.input`
+  padding: 8px;
+  font-size: 16px;
+  margin-right: 8px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+`;
+
+export const SearchInput = styled.input`
+  width: 100%;
+  padding: 10px;
+  margin: 16px 0;
+  font-size: 16px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+`;
