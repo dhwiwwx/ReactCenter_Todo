@@ -15,13 +15,14 @@ export const Container = styled.div`
   display: flex;
   flex-direction: column;
   height: 100vh;
+  overflow-y: auto;
   margin: 0 auto;
   background-color: #22254b;
 `;
 
 // ✅ 상단 타이틀 + 로그아웃 정렬용
 export const HeaderRow = styled.div`
- display: flex;
+  display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 20px 30px;
@@ -112,7 +113,10 @@ export const EditInput = styled.input`
 
 export const List = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); /* ⬅️ 카드 너비 넓힘 */
+  grid-template-columns: repeat(
+    auto-fill,
+    minmax(240px, 1fr)
+  ); /* ⬅️ 카드 너비 넓힘 */
   gap: 20px;
   width: 90%;
   max-width: 1000px;
@@ -243,7 +247,7 @@ export const SearchInput = styled.input`
     outline: none;
     box-shadow: 0 0 0 2px #4dabf7;
     background-color: #2b2e55;
-     caret-color: #4dabf7; /* 포커스일 때 커서 보이게 */
+    caret-color: #4dabf7; /* 포커스일 때 커서 보이게 */
   }
 
   transition: all 0.2s;
@@ -353,4 +357,45 @@ export const PageButton = styled.button<{ active?: boolean }>`
     opacity: 0.4;
     cursor: default;
   }
+`;
+
+export const DeadlineTag = styled.p<{ status: string }>`
+  font-size: 0.9rem;
+  color: ${({ status }) =>
+    status === "마감 지남"
+      ? "#ff6b6b"
+      : status === "오늘 마감"
+      ? "#feca57"
+      : "#48dbfb"};
+  margin-top: 4px;
+`;
+
+export const Tag = styled.span`
+  display: inline-block;
+  padding: 4px 8px;
+  margin-top: 4px;
+  margin-right: 6px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: white;
+`;
+
+export const CategoryTag = styled(Tag)`
+  background-color: #5c6bc0; // 보라색 계열
+`;
+
+export const PriorityTag = styled(Tag)<{ priority: string }>`
+  background-color: ${({ priority }) =>
+    priority === "높음"
+      ? "#e74c3c"
+      : priority === "중간"
+      ? "#f1c40f"
+      : "#2ecc71"};
+`;
+
+export const ScrollableListWrapper = styled.div`
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px 0;
 `;

@@ -10,7 +10,7 @@ import {
   SubButton,
   LogoSection,
   ServiceName,
-  SubTitle
+  SubTitle,
 } from "./Login.styled";
 
 function Login() {
@@ -26,7 +26,7 @@ function Login() {
 
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      navigate("/list");
+      navigate("/projects");
     } catch (error: any) {
       alert("로그인 실패: 회원정보가 없습니다.");
     }
@@ -35,10 +35,10 @@ function Login() {
   return (
     <Container>
       <LoginBox>
-      <LogoSection>
-    <ServiceName>TIMS</ServiceName>
-    <SubTitle>계속하려면 로그인하세요</SubTitle>
-  </LogoSection>
+        <LogoSection>
+          <ServiceName>TIMS</ServiceName>
+          <SubTitle>계속하려면 로그인하세요</SubTitle>
+        </LogoSection>
         <Input
           type="email"
           placeholder="이메일"

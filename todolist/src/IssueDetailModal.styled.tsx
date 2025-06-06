@@ -14,7 +14,10 @@ export const fadeIn = keyframes`
 
 export const Backdrop = styled.div`
   position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background: rgba(0, 0, 0, 0.6);
   display: flex;
   justify-content: center;
@@ -23,60 +26,53 @@ export const Backdrop = styled.div`
 `;
 
 export const Modal = styled.div`
-  background: #2c2f48;
+  background: #1e1f2f;
   color: #ffffff;
   padding: 32px;
   border-radius: 16px;
   width: 420px;
   max-width: 90%;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-  font-family: 'Pretendard', sans-serif;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+  font-family: "Pretendard", sans-serif;
   animation: ${fadeIn} 0.25s ease-out;
 `;
 
 export const Title = styled.h2`
   margin-bottom: 16px;
-  font-size: 22px;
+  font-size: 24px;
   font-weight: 700;
 `;
 
 export const Field = styled.p`
-  margin: 6px 0;
+  margin: 10px 0;
   font-size: 15px;
-  line-height: 1.5;
-  color: #dddddd;
+  line-height: 1.6;
+  color: #ccc;
 
   span {
+    display: inline-block;
+    width: 80px;
     font-weight: 600;
-    color: #ffffff;
+    color: #aaa;
   }
 `;
 
 export const ButtonGroup = styled.div`
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   gap: 12px;
   margin-top: 24px;
 `;
 
-export const ActionButton = styled.button`
-  padding: 8px 16px;
-  border: none;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.2s;
-`;
-
-
 export const BaseButton = styled.button`
-  padding: 10px 18px;
+  flex: 1;
+  padding: 10px 16px;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   font-weight: 600;
   font-size: 14px;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: background-color 0.2s ease;
 `;
 
 export const CloseButton = styled(BaseButton)`
@@ -89,19 +85,68 @@ export const CloseButton = styled(BaseButton)`
 `;
 
 export const EditButton = styled(BaseButton)`
-  background-color: #aed581;
-  color: #1b5e20;
+  background-color: #81c784;
+  color: white;
 
   &:hover {
-    background-color: #9ccc65;
+    background-color: #66bb6a;
   }
 `;
 
 export const DeleteButton = styled(BaseButton)`
-  background-color: #ef9a9a;
-  color: #b71c1c;
+  background-color: #e57373;
+  color: white;
 
   &:hover {
-    background-color: #e57373;
+    background-color: #ef5350;
   }
+`;
+
+export const StatusBadge = styled.div<{ status: string }>`
+  margin: 8px 0;
+  padding: 6px 12px;
+  display: inline-block;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: bold;
+  background-color: ${({ status }) =>
+    status === "완료"
+      ? "#10ac84"
+      : status === "진행 중"
+      ? "#feca57"
+      : "#576574"};
+  color: white;
+`;
+
+export const DeadlineTag = styled.p<{ status: string }>`
+  display: inline;
+  margin-left: 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: ${({ status }) =>
+    status === "마감 지남"
+      ? "#ff6b6b"
+      : status === "오늘 마감"
+      ? "#feca57"
+      : "#48dbfb"};
+`;
+
+export const StatusSelect = styled.select`
+  padding: 6px 10px;
+  font-size: 0.85rem;
+  border-radius: 6px;
+  border: 1px solid #aaa;
+  background: #1e1e2f;
+  color: #fff;
+
+  &:focus {
+    outline: none;
+    border-color: #4fc3f7;
+  }
+`;
+export const StatusRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 8px 0;
 `;

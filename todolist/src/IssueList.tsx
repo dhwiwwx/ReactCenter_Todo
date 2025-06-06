@@ -1,16 +1,15 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import {
   Container,
   List,
   Title,
   Todo,
-  EditDiv,
+  DeadlineTag,
   NoSelect,
   HeaderRow,
   SearchRow,
   StyledLogoutButton,
   StyledRegisterButton,
-  StyledSearchButton,
   SearchInput,
   SortSelect,
   CardWrapper,
@@ -18,13 +17,13 @@ import {
   CardTitle,
   CardDescription,
   CardMeta,
-  PaginationWrapper,
-  PageButton,
+  CategoryTag,
+  PriorityTag,
+  ScrollableListWrapper,
 } from "./IssueList.styled";
 import { useNavigate } from "react-router-dom";
 import { signOut } from "firebase/auth";
-import { auth } from "./firebase";
-import { db } from "./firebase";
+import { auth, db } from "./firebase";
 import {
   collection,
   getDocs,
@@ -34,6 +33,7 @@ import {
   doc,
 } from "firebase/firestore";
 import IssueDetailModal from "./IssueDetailModal";
+import { Circles } from "react-loader-spinner";
 
 interface Issue {
   id: string;
@@ -49,69 +49,69 @@ interface Issue {
 
 function IssueList() {
   const [issues, setIssues] = useState<Issue[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [searchInput, setSearchInput] = useState<string>("");
-  const [searchKeyword, setSearchKeyword] = useState<string>("");
   const [sortOrder, setSortOrder] = useState<string>("기본순");
+  const [statusFilter, setStatusFilter] = useState<string>("전체");
   const [selectedIssue, setSelectedIssue] = useState<Issue | null>(null);
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const itemsPerPage = 9;
   const navigate = useNavigate();
 
-  const handleCardClick = (issue: Issue) => setSelectedIssue(issue);
-  const handleCloseModal = () => setSelectedIssue(null);
-  const handleEditIssue = (id: string) => navigate(`/edit/${id}`);
-
-  const handleDeleteIssue = async (id: string) => {
-    const ok = window.confirm("정말 이 이슈를 삭제하시겠습니까?");
-    if (!ok) return;
-
+  const fetchIssues = async () => {
     try {
-      await deleteDoc(doc(db, "issues", id));
-      setIssues((prev) => prev.filter((issue) => issue.id !== id));
-      setSelectedIssue(null);
-    } catch (error) {
-      console.error("삭제 중 오류:", error);
-      alert("이슈 삭제에 실패했습니다.");
+      setIsLoading(true);
+      const q = query(collection(db, "issues"), orderBy("createdAt", "desc"));
+      const snapshot = await getDocs(q);
+      const data = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as Issue[];
+      setIssues(data);
+    } catch (e) {
+      console.error("이슈 불러오기 실패:", e);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    const fetchIssues = async () => {
-      try {
-        const q = query(collection(db, "issues"), orderBy("createdAt", "desc"));
-        const querySnapshot = await getDocs(q);
-        const data = querySnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        })) as Issue[];
-
-        setIssues(data);
-      } catch (e) {
-        console.error("이슈 불러오기 실패:", e);
-      }
-    };
-
     fetchIssues();
   }, []);
 
-  const handleSearch = () => {
-    setSearchKeyword(searchInput.trim());
-    setCurrentPage(1); // 검색 시 첫 페이지로 이동
+  const handleCardClick = (issue: Issue) => setSelectedIssue(issue);
+  const handleCloseModal = () => setSelectedIssue(null);
+  const handleEditIssue = (id: string, issue: Issue) => {
+    navigate(`/edit/${id}`, { state: issue });
+  };
+  const handleDeleteIssue = async (id: string) => {
+    if (!window.confirm("정말 삭제할까요?")) return;
+    await deleteDoc(doc(db, "issues", id));
+    setIssues((prev) => prev.filter((i) => i.id !== id));
+    setSelectedIssue(null);
   };
 
-  const getPriorityValue = (priority: string): number => {
-    if (priority === "높음") return 3;
-    if (priority === "중간") return 2;
-    if (priority === "낮음") return 1;
-    return 0;
+  const getDeadlineStatus = (deadline?: string) => {
+    if (!deadline) return "";
+    const today = new Date();
+    const due = new Date(deadline);
+    const diff = Math.ceil(
+      (due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+    );
+    if (diff > 0) return `D-${diff}`;
+    if (diff === 0) return "오늘 마감";
+    return "마감 지남";
   };
 
-  const filteredIssues = issues
-    .filter(
-      ({ title, description }) =>
-        title.toLowerCase().includes(searchKeyword.toLowerCase()) ||
-        description.toLowerCase().includes(searchKeyword.toLowerCase())
-    )
+  const getPriorityValue = (p: string) =>
+    p === "높음" ? 3 : p === "중간" ? 2 : 1;
+
+  const filtered = issues
+    .filter(({ title, description, status }) => {
+      const matchesSearch =
+        title.toLowerCase().includes(searchInput.toLowerCase()) ||
+        description.toLowerCase().includes(searchInput.toLowerCase());
+      const matchesStatus = statusFilter === "전체" || status === statusFilter;
+      return matchesSearch && matchesStatus;
+    })
     .sort((a, b) => {
       if (sortOrder === "우선순위 높은순")
         return getPriorityValue(b.priority) - getPriorityValue(a.priority);
@@ -119,12 +119,6 @@ function IssueList() {
         return getPriorityValue(a.priority) - getPriorityValue(b.priority);
       return 0;
     });
-
-  const totalPages = Math.ceil(filteredIssues.length / itemsPerPage);
-  const visibleIssues = filteredIssues.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
 
   return (
     <Container>
@@ -137,15 +131,13 @@ function IssueList() {
 
       <SearchRow>
         <SearchInput
-          placeholder="이슈 제목 또는 설명"
+          placeholder="제목 또는 설명 검색"
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
         />
-        <StyledSearchButton onClick={handleSearch}>검색</StyledSearchButton>
         <StyledRegisterButton onClick={() => navigate("/register")}>
           등록
         </StyledRegisterButton>
-
         <SortSelect
           value={sortOrder}
           onChange={(e) => setSortOrder(e.target.value)}
@@ -154,16 +146,31 @@ function IssueList() {
           <option value="우선순위 높은순">우선순위 높은순</option>
           <option value="우선순위 낮은순">우선순위 낮은순</option>
         </SortSelect>
+        <SortSelect
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+        >
+          <option value="전체">전체</option>
+          <option value="할 일">할 일</option>
+          <option value="진행 중">진행 중</option>
+          <option value="완료">완료</option>
+        </SortSelect>
       </SearchRow>
 
-      {filteredIssues.length === 0 ? (
-        <p style={{ color: "#ccc", textAlign: "center", marginTop: "40px" }}>
-          등록된 이슈가 없습니다.
-        </p>
-      ) : (
-        <>
+      <ScrollableListWrapper>
+        {isLoading ? (
+          <div
+            style={{ display: "flex", justifyContent: "center", marginTop: 60 }}
+          >
+            <Circles height="80" width="80" color="#4fa94d" />
+          </div>
+        ) : filtered.length === 0 ? (
+          <p style={{ color: "#ccc", textAlign: "center", marginTop: "40px" }}>
+            등록된 이슈가 없습니다.
+          </p>
+        ) : (
           <List>
-            {visibleIssues.map((issue) => (
+            {filtered.map((issue) => (
               <Todo key={issue.id} onClick={() => handleCardClick(issue)}>
                 <NoSelect>
                   <CardWrapper>
@@ -172,47 +179,34 @@ function IssueList() {
                     </StatusBadge>
                     <CardTitle>{issue.title}</CardTitle>
                     <CardDescription>{issue.description}</CardDescription>
-                    <CardMeta>우선순위: {issue.priority}</CardMeta>
+                    <CardMeta>
+                      {issue.category && (
+                        <CategoryTag>{issue.category}</CategoryTag>
+                      )}
+                      <PriorityTag priority={issue.priority}>
+                        {issue.priority}
+                      </PriorityTag>
+                    </CardMeta>
+                    {issue.deadline && (
+                      <DeadlineTag status={getDeadlineStatus(issue.deadline)}>
+                        {getDeadlineStatus(issue.deadline)}
+                      </DeadlineTag>
+                    )}
                   </CardWrapper>
                 </NoSelect>
               </Todo>
             ))}
           </List>
-
-          <PaginationWrapper>
-            <PageButton
-              onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-              disabled={currentPage === 1}
-            >
-              이전
-            </PageButton>
-
-            {[...Array(totalPages)].map((_, i) => (
-              <PageButton
-                key={i}
-                active={currentPage === i + 1}
-                onClick={() => setCurrentPage(i + 1)}
-              >
-                {i + 1}
-              </PageButton>
-            ))}
-
-            <PageButton
-              onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
-              disabled={currentPage === totalPages}
-            >
-              다음
-            </PageButton>
-          </PaginationWrapper>
-        </>
-      )}
+        )}
+      </ScrollableListWrapper>
 
       {selectedIssue && (
         <IssueDetailModal
           issue={selectedIssue}
           onClose={handleCloseModal}
-          onEdit={handleEditIssue}
+          onEdit={(id) => handleEditIssue(id, selectedIssue)}
           onDelete={handleDeleteIssue}
+          onStatusChange={fetchIssues}
         />
       )}
     </Container>
