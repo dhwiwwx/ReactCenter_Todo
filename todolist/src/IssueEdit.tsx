@@ -29,8 +29,8 @@ function IssueEdit() {
   const [category, setCategory] = useState("버그");
   const [deadline, setDeadline] = useState("");
   const [status, setStatus] = useState("할 일");
+  const [projectId, setProjectId] = useState<string>("");
 
-  // ✅ 전달된 데이터가 있으면 바로 적용
   useEffect(() => {
     const applyData = (data: any) => {
       setTitle(data.title || "");
@@ -40,10 +40,11 @@ function IssueEdit() {
       setCategory(data.category || "버그");
       setDeadline(data.deadline ? data.deadline.substring(0, 10) : "");
       setStatus(data.status || "할 일");
+      setProjectId(data.projectId || ""); // ✅ projectId 저장
     };
 
     if (passedIssue) {
-      applyData(passedIssue); // state로 전달된 데이터로 채움
+      applyData(passedIssue);
     } else if (id) {
       const fetchIssue = async () => {
         const docRef = doc(db, "issues", id);
@@ -52,7 +53,7 @@ function IssueEdit() {
           applyData(docSnap.data());
         } else {
           alert("이슈를 찾을 수 없습니다.");
-          navigate("/list");
+          navigate("/projects");
         }
       };
       fetchIssue();
@@ -86,7 +87,7 @@ function IssueEdit() {
       });
 
       alert("이슈가 성공적으로 수정되었습니다.");
-      navigate("/list");
+      navigate(`/projects/${projectId}/issues`);
     } catch (error) {
       console.error("이슈 수정 실패: ", error);
       alert("수정 중 오류가 발생했습니다.");
@@ -147,7 +148,11 @@ function IssueEdit() {
           </Select>
 
           <ButtonGroup>
-            <CancelButton onClick={() => navigate("/list")}>취소</CancelButton>
+            <CancelButton
+              onClick={() => navigate(`/projects/${projectId}/issues`)}
+            >
+              취소
+            </CancelButton>
             <RegisterButton type="button" onClick={handleUpdate}>
               저장
             </RegisterButton>

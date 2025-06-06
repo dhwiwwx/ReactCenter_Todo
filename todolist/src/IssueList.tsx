@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useCallback } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Container,
   List,
@@ -20,8 +20,10 @@ import {
   CategoryTag,
   PriorityTag,
   ScrollableListWrapper,
+  BackButton,
 } from "./IssueList.styled";
-import { useNavigate } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
+import { useNavigate, useParams } from "react-router-dom";
 import { signOut } from "firebase/auth";
 import { auth, db } from "./firebase";
 import {
@@ -31,6 +33,7 @@ import {
   orderBy,
   deleteDoc,
   doc,
+  where,
 } from "firebase/firestore";
 import IssueDetailModal from "./IssueDetailModal";
 import { Circles } from "react-loader-spinner";
@@ -55,19 +58,34 @@ function IssueList() {
   const [statusFilter, setStatusFilter] = useState<string>("전체");
   const [selectedIssue, setSelectedIssue] = useState<Issue | null>(null);
   const navigate = useNavigate();
+  const { projectId } = useParams<{ projectId: string }>();
 
   const fetchIssues = async () => {
     try {
       setIsLoading(true);
-      const q = query(collection(db, "issues"), orderBy("createdAt", "desc"));
+
+      if (!projectId) {
+        console.warn("projectId가 없습니다.");
+        setIssues([]);
+        return;
+      }
+
+      const q = query(
+        collection(db, "issues"),
+        where("projectId", "==", projectId),
+        orderBy("createdAt", "desc")
+      );
       const snapshot = await getDocs(q);
+
       const data = snapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       })) as Issue[];
+
       setIssues(data);
     } catch (e) {
       console.error("이슈 불러오기 실패:", e);
+      setIssues([]);
     } finally {
       setIsLoading(false);
     }
@@ -75,7 +93,7 @@ function IssueList() {
 
   useEffect(() => {
     fetchIssues();
-  }, []);
+  }, [projectId]);
 
   const handleCardClick = (issue: Issue) => setSelectedIssue(issue);
   const handleCloseModal = () => setSelectedIssue(null);
@@ -124,9 +142,15 @@ function IssueList() {
     <Container>
       <HeaderRow>
         <Title>이슈 목록</Title>
-        <StyledLogoutButton onClick={() => signOut(auth)}>
-          로그아웃
-        </StyledLogoutButton>
+        <div style={{ display: "flex", gap: "10px" }}>
+          <BackButton onClick={() => navigate("/projects")}>
+            <ArrowLeft size={16} />
+            프로젝트 목록
+          </BackButton>
+          <StyledLogoutButton onClick={() => signOut(auth)}>
+            로그아웃
+          </StyledLogoutButton>
+        </div>
       </HeaderRow>
 
       <SearchRow>
@@ -135,7 +159,9 @@ function IssueList() {
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
         />
-        <StyledRegisterButton onClick={() => navigate("/register")}>
+        <StyledRegisterButton
+          onClick={() => navigate(`/projects/${projectId}/register`)}
+        >
           등록
         </StyledRegisterButton>
         <SortSelect

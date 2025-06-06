@@ -399,3 +399,25 @@ export const ScrollableListWrapper = styled.div`
   overflow-y: auto;
   padding: 10px 0;
 `;
+
+export const BackButton = styled.button`
+  background-color: transparent;
+  border: 1px solid #fff;
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  margin-right: 10px;
+  display: flex;
+  align-items: center;
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+
+  svg {
+    margin-right: 6px;
+  }
+`;

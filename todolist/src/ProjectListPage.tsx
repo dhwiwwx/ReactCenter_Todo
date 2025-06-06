@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Trash2 } from "lucide-react"; // 상단에 import 추가
 import {
   Container,
   Title,
@@ -8,9 +9,16 @@ import {
   InputRow,
   ProjectInput,
   AddButton,
+  DeleteButton,
 } from "./ProjectList.styled";
 import { db } from "./firebase";
-import { collection, getDocs, addDoc } from "firebase/firestore";
+import {
+  collection,
+  getDocs,
+  addDoc,
+  deleteDoc,
+  doc,
+} from "firebase/firestore";
 
 interface Project {
   id: string;
@@ -46,6 +54,14 @@ const ProjectListPage = () => {
     fetchProjects(); // 등록 후 리스트 다시 불러오기
   };
 
+  const deleteProject = async (projectId: string) => {
+    const ok = window.confirm("정말 이 프로젝트를 삭제하시겠어요?");
+    if (!ok) return;
+
+    await deleteDoc(doc(db, "projects", projectId));
+    fetchProjects();
+  };
+
   return (
     <Container>
       <Title>📁 프로젝트 목록</Title>
@@ -62,11 +78,13 @@ const ProjectListPage = () => {
 
       <ProjectList>
         {projects.map((project) => (
-          <ProjectItem
-            key={project.id}
-            onClick={() => navigate(`/projects/${project.id}/issues`)}
-          >
-            {project.name}
+          <ProjectItem key={project.id}>
+            <span onClick={() => navigate(`/projects/${project.id}/issues`)}>
+              {project.name}
+            </span>
+            <DeleteButton onClick={() => deleteProject(project.id)}>
+              <Trash2 size={20} />
+            </DeleteButton>
           </ProjectItem>
         ))}
       </ProjectList>

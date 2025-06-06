@@ -4,10 +4,10 @@ import Login from "./Login";
 import Signup from "./Signup";
 import IssueRegister from "./Register";
 import IssueEdit from "./IssueEdit";
+import ProjectListPage from "./ProjectListPage";
+import IssueList from "./IssueList";
 import { auth } from "./firebase";
 import { useAuthState } from "react-firebase-hooks/auth";
-import ProjectListPage from "./ProjectListPage";
-import ProjectIssueListPage from "./ProjectListPage";
 
 function App() {
   const [user, loading] = useAuthState(auth);
@@ -28,13 +28,16 @@ function App() {
         />
         <Route
           path="/projects/:projectId/issues"
-          element={user ? <ProjectIssueListPage /> : <Navigate to="/" />}
+          element={user ? <IssueList /> : <Navigate to="/" />}
         />
         <Route
-          path="/register"
+          path="/projects/:projectId/register"
           element={user ? <IssueRegister /> : <Navigate to="/" />}
         />
-        <Route path="/edit/:id" element={<IssueEdit />} />
+        <Route
+          path="/edit/:id"
+          element={user ? <IssueEdit /> : <Navigate to="/" />}
+        />
       </Routes>
     </BrowserRouter>
   );
