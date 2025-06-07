@@ -102,3 +102,13 @@ export const TogglePassword = styled.button`
   color: #888;
   padding: 0;
 `;
+
+export const CheckboxLabel = styled.label`
+  align-self: flex-start;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #ccc;
+  margin-bottom: 16px;
+`;
