@@ -81,7 +81,6 @@ export const AddButton = styled.button`
     background-color: #3b8c3a;
   }
 `;
-
 export const ProjectItem = styled.li`
   display: flex;
   justify-content: space-between;
@@ -119,8 +118,7 @@ export const CardItem = styled.li`
   display: flex;
   flex-direction: column;
   gap: 8px;
-  transition: background-color 0.2s ease, transform 0.2s ease,
-    box-shadow 0.2s ease;
+  transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 
   &:hover {
     background-color: #3b3e7a;
@@ -128,6 +126,7 @@ export const CardItem = styled.li`
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
   }
 `;
+
 
 export const DeleteButton = styled.button`
   background: none;
