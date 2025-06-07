@@ -1,6 +1,11 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import {
+  signInWithEmailAndPassword,
+  setPersistence,
+  browserLocalPersistence,
+  browserSessionPersistence,
+} from "firebase/auth";
 import { auth } from "../../Firebase/firebase";
 import {
   Container,
@@ -13,6 +18,7 @@ import {
   SubTitle,
   TogglePassword,
   PasswordWrapper,
+  CheckboxLabel,
 } from "./Login.styled";
 import { Eye, EyeOff } from "lucide-react";
 
@@ -20,6 +26,7 @@ function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [keepLoggedIn, setKeepLoggedIn] = useState(false);
   const navigate = useNavigate();
 
   const handleLogin = async () => {
@@ -29,6 +36,10 @@ function Login() {
     }
 
     try {
+      await setPersistence(
+        auth,
+        keepLoggedIn ? browserLocalPersistence : browserSessionPersistence
+      );
       await signInWithEmailAndPassword(auth, email, password);
       navigate("/projects");
     } catch (error: any) {
@@ -70,6 +81,15 @@ function Login() {
             {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
           </TogglePassword>
         </PasswordWrapper>
+
+        <CheckboxLabel>
+          <input
+            type="checkbox"
+            checked={keepLoggedIn}
+            onChange={() => setKeepLoggedIn((prev) => !prev)}
+          />
+          로그인 유지하기
+        </CheckboxLabel>
 
         <Button onClick={handleLogin}>로그인</Button>
         <SubButton onClick={() => navigate("/signup")}>회원가입</SubButton>
