@@ -1,35 +1,54 @@
 import styled from "styled-components";
 
 export const Container = styled.div`
-  padding: 32px;
+  padding: 24px;
   min-height: 100vh;
-  background-color: #22254b; // ✅ 이슈 리스트와 동일한 배경색
+  background-color: #22254b;
   color: #ffffff;
 `;
 
 export const Title = styled.h2`
-  margin-bottom: 24px;
-  font-size: 24px;
+  margin-bottom: 16px;
+  font-size: 22px;
   font-weight: bold;
 `;
 
 export const ProjectList = styled.ul`
   list-style: none;
   padding: 0;
-  margin-top: 16px;
+  margin-top: 12px;
 `;
 
 export const InputRow = styled.div`
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 16px;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+  }
 `;
 
 export const ProjectInput = styled.input`
   flex: 1;
-  padding: 10px;
-  font-size: 16px;
-  background-color: #2a2e5b; // 어두운 입력창 배경
+  padding: 8px 10px;
+  font-size: 14px;
+  background-color: #2a2e5b;
+  color: #fff;
+  border: 1px solid #444c77;
+  border-radius: 6px;
+
+  &::placeholder {
+    color: #aaa;
+  }
+`;
+
+export const DescriptionInput = styled.input`
+  flex: 2;
+  padding: 8px 10px;
+  font-size: 14px;
+  background-color: #2a2e5b;
   color: #fff;
   border: 1px solid #444c77;
   border-radius: 6px;
@@ -40,9 +59,9 @@ export const ProjectInput = styled.input`
 `;
 
 export const AddButton = styled.button`
-  padding: 10px 16px;
-  font-size: 16px;
-  background-color: #4fa94d; // 초록색 버튼 (이슈 리스트 등록 버튼과 동일)
+  padding: 8px 12px;
+  font-size: 14px;
+  background-color: #4fa94d;
   color: white;
   border: none;
   border-radius: 6px;
@@ -58,13 +77,12 @@ export const ProjectItem = styled.li`
   display: flex;
   justify-content: space-between;
   align-items: center;
-
-  padding: 16px;
-  background-color: #2c2f65; // 리스트 카드 배경
+  padding: 12px;
+  background-color: #2c2f65;
   border: 1px solid #3a3d70;
   border-radius: 8px;
-  margin-bottom: 12px;
-  font-size: 18px;
+  margin-bottom: 10px;
+  font-size: 16px;
   transition: background-color 0.2s ease;
 
   span {
@@ -115,7 +133,7 @@ export const PinButton = styled.button`
 
 export const EditInput = styled.input`
   padding: 8px;
-  font-size: 16px;
+  font-size: 14px;
   margin-right: 8px;
   border-radius: 6px;
   border: 1px solid #ccc;
@@ -123,9 +141,9 @@ export const EditInput = styled.input`
 
 export const SearchInput = styled.input`
   width: 100%;
-  padding: 10px;
-  margin: 16px 0;
-  font-size: 16px;
+  padding: 8px 10px;
+  margin: 12px 0;
+  font-size: 14px;
   border-radius: 6px;
   border: 1px solid #ddd;
 `;

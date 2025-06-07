@@ -1,12 +1,12 @@
 import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import Login from "./Login";
-import Signup from "./Signup";
-import IssueRegister from "./Register";
-import IssueEdit from "./IssueEdit";
-import ProjectListPage from "./ProjectListPage";
-import IssueList from "./IssueList";
-import { auth } from "./firebase";
+import Login from "./Pages/Login/Login";
+import Signup from "./Pages/Signup/Signup";
+import IssueRegister from "./Pages/IssueRegister/IssueRegister";
+import IssueEdit from "./Pages/IssueEdit/IssueEdit";
+import ProjectListPage from "./Pages/ProjectListPage/ProjectListPage";
+import IssueList from "./Pages/IssueList/IssueList";
+import { auth } from "./Firebase/firebase";
 import { useAuthState } from "react-firebase-hooks/auth";
 
 function App() {

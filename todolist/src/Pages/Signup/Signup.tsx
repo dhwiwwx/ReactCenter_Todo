@@ -3,7 +3,7 @@ import {
   createUserWithEmailAndPassword,
   fetchSignInMethodsForEmail,
 } from "firebase/auth";
-import { auth } from "./firebase";
+import { auth } from "../../Firebase/firebase";
 import { useNavigate } from "react-router-dom";
 import {
   Container,
@@ -13,7 +13,7 @@ import {
   SubTitle,
   Input,
   Button,
-} from "./Login.styled";
+} from "../Login/Login.styled";
 import { CheckButton, EmailInput, EmailRow, LinkButton } from "./Signup.styled";
 
 function Signup() {
@@ -29,10 +29,10 @@ function Signup() {
       alert("이메일을 입력해주세요.");
       return;
     }
-  
+
     try {
       const methods = await fetchSignInMethodsForEmail(auth, email);
-  
+
       if (methods.length > 0) {
         alert("이미 사용 중인 이메일입니다.");
         setEmailChecked(false);
@@ -80,17 +80,17 @@ function Signup() {
         </LogoSection>
 
         <EmailRow>
-  <EmailInput
-    type="email"
-    placeholder="이메일"
-    value={email}
-    onChange={(e) => {
-      setEmail(e.target.value);
-      setEmailChecked(false);
-    }}
-  />
-  <CheckButton onClick={handleEmailCheck}>중복확인</CheckButton>
-</EmailRow>
+          <EmailInput
+            type="email"
+            placeholder="이메일"
+            value={email}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              setEmailChecked(false);
+            }}
+          />
+          <CheckButton onClick={handleEmailCheck}>중복확인</CheckButton>
+        </EmailRow>
         <Input
           type="password"
           placeholder="비밀번호"
@@ -106,8 +106,8 @@ function Signup() {
 
         <Button onClick={handleSignup}>회원가입</Button>
         <LinkButton onClick={() => navigate("/")}>
-        이미 계정이 있으신가요? 로그인
-      </LinkButton>
+          이미 계정이 있으신가요? 로그인
+        </LinkButton>
       </LoginBox>
     </Container>
   );
