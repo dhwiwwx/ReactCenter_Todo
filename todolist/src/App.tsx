@@ -2,7 +2,6 @@ import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./Pages/Login/Login";
 import Signup from "./Pages/Signup/Signup";
-import ResetPassword from "./Pages/ResetPassword/ResetPassword";
 import IssueRegister from "./Pages/IssueRegister/IssueRegister";
 import IssueEdit from "./Pages/IssueEdit/IssueEdit";
 import ProjectListPage from "./Pages/ProjectListPage/ProjectListPage";
@@ -23,10 +22,6 @@ function App() {
           element={user ? <Navigate to="/projects" /> : <Login />}
         />
         <Route path="/signup" element={<Signup />} />
-        <Route
-          path="/reset-password"
-          element={user ? <Navigate to="/projects" /> : <ResetPassword />}
-        />
         <Route
           path="/projects"
           element={user ? <ProjectListPage /> : <Navigate to="/" />}

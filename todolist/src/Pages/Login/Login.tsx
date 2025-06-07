@@ -53,7 +53,6 @@ function Login() {
         />
         <Button onClick={handleLogin}>로그인</Button>
         <SubButton onClick={() => navigate("/signup")}>회원가입</SubButton>
-        <SubButton onClick={() => navigate("/reset-password")}>비밀번호 재설정</SubButton>
       </LoginBox>
     </Container>
   );
