@@ -86,7 +86,10 @@ const ProjectListPage = () => {
     );
 
     const filtered = data.filter((p) => p.isDeleted === showTrash);
+
     const sorted = filtered.sort((a, b) => {
+      if (a.isPinned && !b.isPinned) return -1;
+      if (!a.isPinned && b.isPinned) return 1;
       const aTime = a.lastViewedAt ? new Date(a.lastViewedAt).getTime() : 0;
       const bTime = b.lastViewedAt ? new Date(b.lastViewedAt).getTime() : 0;
       return bTime - aTime;
@@ -178,7 +181,12 @@ const ProjectListPage = () => {
           alignItems: "center",
         }}
       >
-        <Title>📁 프로젝트 목록</Title>
+        <Title>
+          📁 프로젝트 목록{" "}
+          <span style={{ fontSize: "16px", marginLeft: "8px", color: "#aaa" }}>
+            ({filteredProjects.length}개)
+          </span>
+        </Title>
         <StyledLogoutButton onClick={handleSignOut}>
           로그아웃
         </StyledLogoutButton>
@@ -233,7 +241,14 @@ const ProjectListPage = () => {
                 </PinButton>
               </div>
             ) : (
-              <span onClick={() => navigate(`/projects/${project.id}/issues`)}>
+              <span
+                onClick={async () => {
+                  await updateDoc(doc(db, "projects", project.id), {
+                    lastViewedAt: new Date().toISOString(),
+                  });
+                  navigate(`/projects/${project.id}/issues`);
+                }}
+              >
                 {project.name}
                 <span style={{ marginLeft: 8, fontSize: 14, color: "#ccc" }}>
                   ({project.issueCount ?? 0}건)
