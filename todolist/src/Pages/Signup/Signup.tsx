@@ -37,13 +37,14 @@ function Signup() {
 
   // ✅ 이메일 중복 확인
   const handleEmailCheck = async () => {
-    if (!email) {
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail) {
       alert("이메일을 입력해주세요.");
       return;
     }
 
     try {
-      const methods = await fetchSignInMethodsForEmail(auth, email);
+      const methods = await fetchSignInMethodsForEmail(auth, trimmedEmail);
 
       if (methods.length > 0) {
         alert("이미 사용 중인 이메일입니다.");
@@ -59,7 +60,8 @@ function Signup() {
   };
 
   const handleSignup = async () => {
-    if (!email || !password || !confirmPassword) {
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail || !password || !confirmPassword) {
       alert("모든 항목을 입력해주세요.");
       return;
     }
@@ -85,7 +87,7 @@ function Signup() {
     }
 
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
+      await createUserWithEmailAndPassword(auth, trimmedEmail, password);
       alert("회원가입 성공! 로그인해주세요.");
       navigate("/");
     } catch (error: any) {
@@ -120,10 +122,11 @@ function Signup() {
             value={email}
             onChange={(e) => {
               const value = e.target.value;
+              const trimmedValue = value.trim();
               setEmail(value);
               setEmailChecked(false);
               const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-              if (regex.test(value)) {
+              if (regex.test(trimmedValue)) {
                 setEmailMessage("올바른 이메일 형식입니다.");
                 setIsEmailValid(true);
               } else {
