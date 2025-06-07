@@ -14,13 +14,25 @@ import {
   Input,
   Button,
 } from "../Login/Login.styled";
-import { CheckButton, EmailInput, EmailRow, LinkButton } from "./Signup.styled";
+import {
+  CheckButton,
+  EmailInput,
+  EmailRow,
+  LinkButton,
+  InfoText,
+} from "./Signup.styled";
 
 function Signup() {
   const [email, setEmail] = useState("");
   const [emailChecked, setEmailChecked] = useState(false);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [emailMessage, setEmailMessage] = useState("");
+  const [passwordMessage, setPasswordMessage] = useState("");
+  const [confirmMessage, setConfirmMessage] = useState("");
+  const [isEmailValid, setIsEmailValid] = useState(false);
+  const [isPasswordValid, setIsPasswordValid] = useState(false);
+  const [isConfirmValid, setIsConfirmValid] = useState(false);
   const navigate = useNavigate();
 
   // ✅ 이메일 중복 확인
@@ -52,13 +64,23 @@ function Signup() {
       return;
     }
 
-    if (!emailChecked) {
-      alert("이메일 중복 확인을 해주세요.");
+    if (!isEmailValid) {
+      alert("유효한 이메일을 입력해주세요.");
       return;
     }
 
-    if (password !== confirmPassword) {
+    if (!isPasswordValid) {
+      alert("비밀번호는 최소 6자 이상이어야 합니다.");
+      return;
+    }
+
+    if (!isConfirmValid) {
       alert("비밀번호가 일치하지 않습니다.");
+      return;
+    }
+
+    if (!emailChecked) {
+      alert("이메일 중복 확인을 해주세요.");
       return;
     }
 
@@ -66,8 +88,20 @@ function Signup() {
       await createUserWithEmailAndPassword(auth, email, password);
       alert("회원가입 성공! 로그인해주세요.");
       navigate("/");
-    } catch (error) {
-      alert("회원가입 실패: 이미 가입된 이메일일 수 있습니다.");
+    } catch (error: any) {
+      let message = "회원가입 실패";
+      switch (error.code) {
+        case "auth/email-already-in-use":
+          message = "이미 사용 중인 이메일입니다.";
+          break;
+        case "auth/weak-password":
+          message = "비밀번호는 최소 6자 이상이어야 합니다.";
+          break;
+        case "auth/invalid-email":
+          message = "잘못된 이메일 형식입니다.";
+          break;
+      }
+      alert(message);
     }
   };
 
@@ -85,24 +119,65 @@ function Signup() {
             placeholder="이메일"
             value={email}
             onChange={(e) => {
-              setEmail(e.target.value);
+              const value = e.target.value;
+              setEmail(value);
               setEmailChecked(false);
+              const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+              if (regex.test(value)) {
+                setEmailMessage("올바른 이메일 형식입니다.");
+                setIsEmailValid(true);
+              } else {
+                setEmailMessage("유효한 이메일을 입력해주세요.");
+                setIsEmailValid(false);
+              }
             }}
           />
           <CheckButton onClick={handleEmailCheck}>중복확인</CheckButton>
         </EmailRow>
+        <InfoText color={isEmailValid ? "#4fa94d" : "#ff6b6b"}>{emailMessage}</InfoText>
         <Input
           type="password"
           placeholder="비밀번호"
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={(e) => {
+            const value = e.target.value;
+            setPassword(value);
+            if (value.length >= 6) {
+              setPasswordMessage("사용 가능한 비밀번호입니다.");
+              setIsPasswordValid(true);
+            } else {
+              setPasswordMessage("비밀번호는 최소 6자 이상이어야 합니다.");
+              setIsPasswordValid(false);
+            }
+            if (confirmPassword) {
+              if (value === confirmPassword) {
+                setConfirmMessage("비밀번호가 일치합니다.");
+                setIsConfirmValid(true);
+              } else {
+                setConfirmMessage("비밀번호가 일치하지 않습니다.");
+                setIsConfirmValid(false);
+              }
+            }
+          }}
         />
+        <InfoText color={isPasswordValid ? "#4fa94d" : "#ff6b6b"}>{passwordMessage}</InfoText>
         <Input
           type="password"
           placeholder="비밀번호 확인"
           value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
+          onChange={(e) => {
+            const value = e.target.value;
+            setConfirmPassword(value);
+            if (password === value && value.length >= 6) {
+              setConfirmMessage("비밀번호가 일치합니다.");
+              setIsConfirmValid(true);
+            } else {
+              setConfirmMessage("비밀번호가 일치하지 않습니다.");
+              setIsConfirmValid(false);
+            }
+          }}
         />
+        <InfoText color={isConfirmValid ? "#4fa94d" : "#ff6b6b"}>{confirmMessage}</InfoText>
 
         <Button onClick={handleSignup}>회원가입</Button>
         <LinkButton onClick={() => navigate("/")}>
