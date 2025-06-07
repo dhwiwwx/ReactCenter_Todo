@@ -83,7 +83,7 @@ export const ProjectItem = styled.li`
   border-radius: 8px;
   margin-bottom: 10px;
   font-size: 16px;
-  transition: background-color 0.2s ease;
+  transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 
   span {
     cursor: pointer;
@@ -96,6 +96,8 @@ export const ProjectItem = styled.li`
 
   &:hover {
     background-color: #3b3e7a;
+    transform: scale(1.02);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
   }
 `;
 
@@ -129,6 +131,15 @@ export const PinButton = styled.button`
   &:hover {
     transform: scale(1.1);
   }
+`;
+
+export const RecentBadge = styled.span`
+  background-color: #ff9800;
+  color: #fff;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 12px;
+  margin-left: 8px;
 `;
 
 export const EditInput = styled.input`
