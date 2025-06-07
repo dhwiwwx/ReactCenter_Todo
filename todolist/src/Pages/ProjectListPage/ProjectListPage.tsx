@@ -163,9 +163,6 @@ const ProjectListPage = () => {
       (max, p) => Math.max(max, p.order ?? 0),
       -1
     );
-      alert("동일한 이름의 프로젝트가 이미 존재합니다.");
-      return;
-    }
     await addDoc(collection(db, "projects"), {
       name: newProjectName.trim(),
       description: newDescription.trim(),
@@ -309,19 +306,6 @@ const ProjectListPage = () => {
               draggable={!project.isPinned}
               onDragStart={() => handleDragStart(project.id)}
               onDragOver={handleDragOver}
-              onDrop={() => handleDrop(project.id)}
-            >
-              {editingId === project.id ? (
-                <div>
-                  <EditInput
-                    value={editingName}
-      <ProjectList>
-        {filteredProjects.map((project) => (
-          <ProjectItem
-            key={project.id}
-            draggable={!project.isPinned}
-            onDragStart={() => handleDragStart(project.id)}
-            onDragOver={handleDragOver}
             onDrop={() => handleDrop(project.id)}
           >
             {editingId === project.id ? (
