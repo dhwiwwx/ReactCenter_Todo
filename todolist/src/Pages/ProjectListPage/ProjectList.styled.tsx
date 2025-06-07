@@ -147,3 +147,37 @@ export const SearchInput = styled.input`
   border-radius: 6px;
   border: 1px solid #ddd;
 `;
+export const SearchButton = styled.button`
+  padding: 10px 16px;
+  font-size: 16px;
+  background-color: #4fa94d;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+
+  &:hover {
+    background-color: #3b8c3a;
+  }
+`;
+
+export const HeaderRow = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+`;
+
+export const StyledLogoutButton = styled.button`
+  padding: 8px 12px;
+  background-color: #ff4d4f;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  &:hover {
+    background-color: #d9363e;
+  }
+`;

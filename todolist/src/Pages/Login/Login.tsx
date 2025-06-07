@@ -11,11 +11,15 @@ import {
   LogoSection,
   ServiceName,
   SubTitle,
+  TogglePassword,
+  PasswordWrapper,
 } from "./Login.styled";
+import { Eye, EyeOff } from "lucide-react";
 
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
   const handleLogin = async () => {
@@ -32,6 +36,12 @@ function Login() {
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      handleLogin();
+    }
+  };
+
   return (
     <Container>
       <LoginBox>
@@ -39,20 +49,33 @@ function Login() {
           <ServiceName>TIMS</ServiceName>
           <SubTitle>계속하려면 로그인하세요</SubTitle>
         </LogoSection>
+
         <Input
           type="email"
           placeholder="이메일"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          onKeyDown={handleKeyDown}
         />
-        <Input
-          type="password"
-          placeholder="비밀번호"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
+
+        <PasswordWrapper>
+          <Input
+            type={showPassword ? "text" : "password"}
+            placeholder="비밀번호"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            onKeyDown={handleKeyDown}
+          />
+          <TogglePassword onClick={() => setShowPassword((prev) => !prev)}>
+            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+          </TogglePassword>
+        </PasswordWrapper>
+
         <Button onClick={handleLogin}>로그인</Button>
         <SubButton onClick={() => navigate("/signup")}>회원가입</SubButton>
+        <SubButton onClick={() => navigate("/reset-password")}>
+          비밀번호 재설정
+        </SubButton>
       </LoginBox>
     </Container>
   );

@@ -27,7 +27,6 @@ export const LogoTitleWrap = styled.div`
   margin-bottom: 32px;
 `;
 
-
 export const Input = styled.input`
   padding: 12px;
   margin-bottom: 16px;
@@ -73,7 +72,6 @@ export const LogoSection = styled.div`
   margin-bottom: 32px;
 `;
 
-
 export const ServiceName = styled.h1`
   font-size: 28px;
   color: white;
@@ -86,4 +84,21 @@ export const SubTitle = styled.p`
   color: #ccc;
   margin-top: 8px;
   user-select: none;
+`;
+
+export const PasswordWrapper = styled.div`
+  position: relative;
+  width: 100%;
+`;
+
+export const TogglePassword = styled.button`
+  position: absolute;
+  right: 10px;
+  top: 40%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #888;
+  padding: 0;
 `;

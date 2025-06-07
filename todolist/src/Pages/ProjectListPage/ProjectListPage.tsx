@@ -1,6 +1,15 @@
+// 기존 import 유지
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Trash2, Pin, PinOff, Undo2, XCircle } from "lucide-react";
+import {
+  Trash2,
+  Pin,
+  PinOff,
+  Undo2,
+  XCircle,
+  Edit3,
+  Check,
+} from "lucide-react";
 import {
   Container,
   Title,
@@ -12,10 +21,12 @@ import {
   DeleteButton,
   PinButton,
   ActionGroup,
-  SearchInput,
   DescriptionInput,
+  EditInput,
+  StyledLogoutButton,
 } from "./ProjectList.styled";
-import { db } from "../../Firebase/firebase";
+import { db, auth } from "../../Firebase/firebase";
+import { signOut } from "firebase/auth";
 import {
   collection,
   getDocs,
@@ -39,9 +50,17 @@ const ProjectListPage = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [newProjectName, setNewProjectName] = useState("");
   const [newDescription, setNewDescription] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState("");
+  const [editingDescription, setEditingDescription] = useState("");
   const [showTrash, setShowTrash] = useState(false);
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    await signOut(auth);
+    navigate("/login");
+  };
 
   const fetchProjects = async () => {
     const projectSnapshot = await getDocs(collection(db, "projects"));
@@ -72,6 +91,7 @@ const ProjectListPage = () => {
       const bTime = b.lastViewedAt ? new Date(b.lastViewedAt).getTime() : 0;
       return bTime - aTime;
     });
+
     setProjects(sorted);
   };
 
@@ -79,9 +99,28 @@ const ProjectListPage = () => {
     fetchProjects();
   }, [showTrash]);
 
+  const startEdit = (project: Project) => {
+    setEditingId(project.id);
+    setEditingName(project.name);
+    setEditingDescription(project.description || "");
+  };
+
+  const confirmEdit = async () => {
+    if (!editingId) return;
+    await updateDoc(doc(db, "projects", editingId), {
+      name: editingName,
+      description: editingDescription,
+    });
+    setEditingId(null);
+    fetchProjects();
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+  };
+
   const addProject = async () => {
     if (!newProjectName.trim()) return;
-
     await addDoc(collection(db, "projects"), {
       name: newProjectName.trim(),
       description: newDescription.trim(),
@@ -89,7 +128,6 @@ const ProjectListPage = () => {
       isDeleted: false,
       lastViewedAt: new Date().toISOString(),
     });
-
     setNewProjectName("");
     setNewDescription("");
     fetchProjects();
@@ -133,7 +171,31 @@ const ProjectListPage = () => {
 
   return (
     <Container>
-      <Title>📁 프로젝트 목록</Title>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <Title>📁 프로젝트 목록</Title>
+        <StyledLogoutButton onClick={handleSignOut}>
+          로그아웃
+        </StyledLogoutButton>
+      </div>
+
+      <InputRow>
+        <ProjectInput
+          type="text"
+          placeholder="프로젝트 검색"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+        <AddButton onClick={() => setShowTrash((prev) => !prev)}>
+          {showTrash ? "📂 일반 보기" : "🗑️ 휴지통 보기"}
+        </AddButton>
+      </InputRow>
+
       <InputRow>
         <ProjectInput
           type="text"
@@ -150,31 +212,46 @@ const ProjectListPage = () => {
         <AddButton onClick={addProject}>+ 추가</AddButton>
       </InputRow>
 
-      <SearchInput
-        placeholder="프로젝트 검색"
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-      />
-
-      <AddButton onClick={() => setShowTrash((prev) => !prev)}>
-        {showTrash ? "📂 일반 보기" : "🗑️ 휴지통 보기"}
-      </AddButton>
-
       <ProjectList>
         {filteredProjects.map((project) => (
           <ProjectItem key={project.id}>
-            <span onClick={() => navigate(`/projects/${project.id}/issues`)}>
-              {project.name}
-              <span style={{ marginLeft: 8, fontSize: 14, color: "#ccc" }}>
-                ({project.issueCount ?? 0}건)
+            {editingId === project.id ? (
+              <div>
+                <EditInput
+                  value={editingName}
+                  onChange={(e) => setEditingName(e.target.value)}
+                />
+                <EditInput
+                  value={editingDescription}
+                  onChange={(e) => setEditingDescription(e.target.value)}
+                />
+                <PinButton onClick={confirmEdit}>
+                  <Check size={18} />
+                </PinButton>
+                <PinButton onClick={cancelEdit}>
+                  <XCircle size={18} />
+                </PinButton>
+              </div>
+            ) : (
+              <span onClick={() => navigate(`/projects/${project.id}/issues`)}>
+                {project.name}
+                <span style={{ marginLeft: 8, fontSize: 14, color: "#ccc" }}>
+                  ({project.issueCount ?? 0}건)
+                </span>
+                {project.description && (
+                  <div style={{ fontSize: 12, color: "#aaa" }}>
+                    {project.description}
+                  </div>
+                )}
               </span>
-              {project.description && (
-                <div style={{ fontSize: 12, color: "#aaa" }}>
-                  {project.description}
-                </div>
-              )}
-            </span>
+            )}
+
             <ActionGroup>
+              {!showTrash && editingId !== project.id && (
+                <PinButton onClick={() => startEdit(project)}>
+                  <Edit3 size={18} />
+                </PinButton>
+              )}
               {!showTrash && (
                 <PinButton
                   onClick={() =>
