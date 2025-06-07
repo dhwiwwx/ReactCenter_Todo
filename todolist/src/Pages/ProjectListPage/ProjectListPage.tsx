@@ -15,6 +15,7 @@ import {
   Title,
   ProjectList,
   ProjectItem,
+  RecentBadge,
   InputRow,
   ProjectInput,
   AddButton,
@@ -55,6 +56,8 @@ const ProjectListPage = () => {
   const [editingDescription, setEditingDescription] = useState("");
   const [showTrash, setShowTrash] = useState(false);
   const [search, setSearch] = useState("");
+  const [recentProjectId, setRecentProjectId] = useState<string | null>(null);
+  const [draggedId, setDraggedId] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
@@ -95,6 +98,15 @@ const ProjectListPage = () => {
       return bTime - aTime;
     });
 
+    const mostRecent = filtered.reduce<Project | null>((prev, cur) => {
+      if (!prev) return cur;
+      const prevTime = prev.lastViewedAt ? new Date(prev.lastViewedAt).getTime() : 0;
+      const curTime = cur.lastViewedAt ? new Date(cur.lastViewedAt).getTime() : 0;
+      return curTime > prevTime ? cur : prev;
+    }, null);
+
+    setRecentProjectId(mostRecent ? mostRecent.id : null);
+
     setProjects(sorted);
   };
 
@@ -110,6 +122,10 @@ const ProjectListPage = () => {
 
   const confirmEdit = async () => {
     if (!editingId) return;
+    if (projects.some((p) => p.id !== editingId && p.name === editingName.trim())) {
+      alert("동일한 이름의 프로젝트가 이미 존재합니다.");
+      return;
+    }
     await updateDoc(doc(db, "projects", editingId), {
       name: editingName,
       description: editingDescription,
@@ -124,6 +140,10 @@ const ProjectListPage = () => {
 
   const addProject = async () => {
     if (!newProjectName.trim()) return;
+    if (projects.some((p) => p.name === newProjectName.trim())) {
+      alert("동일한 이름의 프로젝트가 이미 존재합니다.");
+      return;
+    }
     await addDoc(collection(db, "projects"), {
       name: newProjectName.trim(),
       description: newDescription.trim(),
@@ -166,6 +186,27 @@ const ProjectListPage = () => {
       isPinned: !isPinned,
     });
     fetchProjects();
+  };
+
+  const handleDragStart = (id: string) => {
+    setDraggedId(id);
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLLIElement>) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = (id: string) => {
+    if (!draggedId || draggedId === id) return;
+    const dragItem = projects.find((p) => p.id === draggedId);
+    const dropIndex = projects.findIndex((p) => p.id === id);
+    const dragIndex = projects.findIndex((p) => p.id === draggedId);
+    if (!dragItem || dragItem.isPinned || projects[dropIndex].isPinned) return;
+    const newList = [...projects];
+    newList.splice(dragIndex, 1);
+    newList.splice(dropIndex, 0, dragItem);
+    setProjects(newList);
+    setDraggedId(null);
   };
 
   const filteredProjects = projects.filter((project) =>
@@ -222,7 +263,13 @@ const ProjectListPage = () => {
 
       <ProjectList>
         {filteredProjects.map((project) => (
-          <ProjectItem key={project.id}>
+          <ProjectItem
+            key={project.id}
+            draggable={!project.isPinned}
+            onDragStart={() => handleDragStart(project.id)}
+            onDragOver={handleDragOver}
+            onDrop={() => handleDrop(project.id)}
+          >
             {editingId === project.id ? (
               <div>
                 <EditInput
@@ -250,6 +297,9 @@ const ProjectListPage = () => {
                 }}
               >
                 {project.name}
+                {project.id === recentProjectId && (
+                  <RecentBadge>최근 본 프로젝트</RecentBadge>
+                )}
                 <span style={{ marginLeft: 8, fontSize: 14, color: "#ccc" }}>
                   ({project.issueCount ?? 0}건)
                 </span>
