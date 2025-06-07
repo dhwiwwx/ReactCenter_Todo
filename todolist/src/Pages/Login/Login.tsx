@@ -80,22 +80,6 @@ function Login() {
     }
   };
 
-  const handleGoogleLogin = async () => {
-    try {
-      setLoading(true);
-      await setPersistence(
-        auth,
-        keepLoggedIn ? browserLocalPersistence : browserSessionPersistence
-      );
-      await signInWithPopup(auth, new GoogleAuthProvider());
-      navigate("/projects");
-    } catch (error) {
-      alert("구글 로그인에 실패했습니다.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       handleLogin();
@@ -143,9 +127,6 @@ function Login() {
         <Button onClick={handleLogin} disabled={loading}>
           {loading ? <Circles height="20" width="20" color="#fff" /> : "로그인"}
         </Button>
-        <SubButton onClick={handleGoogleLogin} disabled={loading}>
-          구글 로그인
-        </SubButton>
         <SubButton onClick={() => navigate("/signup")}>회원가입</SubButton>
         <SubButton onClick={() => navigate("/reset-password")}>
           비밀번호 재설정
