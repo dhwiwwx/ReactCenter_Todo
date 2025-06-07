@@ -19,6 +19,15 @@ export const ProjectList = styled.ul`
   margin-top: 12px;
 `;
 
+export const CardGrid = styled.ul`
+  list-style: none;
+  padding: 0;
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+`;
+
 export const InputRow = styled.div`
   display: flex;
   flex-wrap: wrap;
@@ -83,7 +92,7 @@ export const ProjectItem = styled.li`
   border-radius: 8px;
   margin-bottom: 10px;
   font-size: 16px;
-  transition: background-color 0.2s ease;
+  transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 
   span {
     cursor: pointer;
@@ -96,6 +105,27 @@ export const ProjectItem = styled.li`
 
   &:hover {
     background-color: #3b3e7a;
+    transform: scale(1.02);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  }
+`;
+
+export const CardItem = styled.li`
+  padding: 12px;
+  background-color: #2c2f65;
+  border: 1px solid #3a3d70;
+  border-radius: 8px;
+  font-size: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: background-color 0.2s ease, transform 0.2s ease,
+    box-shadow 0.2s ease;
+
+  &:hover {
+    background-color: #3b3e7a;
+    transform: scale(1.02);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
   }
 `;
 
@@ -129,6 +159,15 @@ export const PinButton = styled.button`
   &:hover {
     transform: scale(1.1);
   }
+`;
+
+export const RecentBadge = styled.span`
+  background-color: #ff9800;
+  color: #fff;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 12px;
+  margin-left: 8px;
 `;
 
 export const EditInput = styled.input`
@@ -180,4 +219,24 @@ export const StyledLogoutButton = styled.button`
   &:hover {
     background-color: #d9363e;
   }
+`;
+
+export const ViewToggleButton = styled.button`
+  padding: 8px 12px;
+  background-color: #4dabf7;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+
+  &:hover {
+    background-color: #339af0;
+  }
+`;
+
+export const ErrorMessage = styled.p`
+  color: #ff6b6b;
+  margin: 0 0 8px 0;
+  font-size: 14px;
 `;
