@@ -9,62 +9,16 @@ export const Container = styled.div`
 `;
 
 export const LoginBox = styled.div`
-  background-color: #2d2d5a;
-  padding: 40px;
+  background-color: #2c2c54;
+  padding: 48px 36px;
   border-radius: 16px;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
   display: flex;
   flex-direction: column;
-  align-items: center;
-  width: 340px;
+  align-items: stretch;
+  width: 380px;
 `;
 
-export const LogoTitleWrap = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
-  margin-bottom: 32px;
-`;
-
-export const Input = styled.input`
-  padding: 12px;
-  margin-bottom: 16px;
-  border: none;
-  border-radius: 8px;
-  outline: none;
-  font-size: 16px;
-  width: 100%;
-  box-sizing: border-box;
-`;
-
-export const Button = styled.button`
-  padding: 12px;
-  font-size: 16px;
-  background-color: white;
-  color: #1c1c3c;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  margin-bottom: 12px;
-  font-weight: bold;
-  width: 100%;
-
-  &:hover {
-    background-color: #ddd;
-  }
-`;
-
-export const SubButton = styled(Button)`
-  background-color: transparent;
-  color: white;
-  border: 1px solid white;
-
-  &:hover {
-    background-color: white;
-    color: #1c1c3c;
-  }
-`;
 export const LogoSection = styled.div`
   display: flex;
   flex-direction: column;
@@ -81,9 +35,29 @@ export const ServiceName = styled.h1`
 
 export const SubTitle = styled.p`
   font-size: 14px;
-  color: #ccc;
+  color: #bbb;
   margin-top: 8px;
   user-select: none;
+`;
+
+export const Input = styled.input`
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  border: 1px solid #444;
+  border-radius: 8px;
+  background-color: #1f1f3d;
+  color: white;
+  font-size: 15px;
+  width: 100%;
+  box-sizing: border-box;
+
+  &::placeholder {
+    color: #999;
+  }
+
+  &:focus {
+    outline: 2px solid #4fa94d;
+  }
 `;
 
 export const PasswordWrapper = styled.div`
@@ -93,14 +67,18 @@ export const PasswordWrapper = styled.div`
 
 export const TogglePassword = styled.button`
   position: absolute;
-  right: 10px;
+  right: 12px;
   top: 40%;
   transform: translateY(-50%);
   background: transparent;
   border: none;
   cursor: pointer;
-  color: #888;
+  color: #bbb;
   padding: 0;
+
+  &:hover {
+    color: white;
+  }
 `;
 
 export const CheckboxLabel = styled.label`
@@ -110,5 +88,51 @@ export const CheckboxLabel = styled.label`
   gap: 8px;
   font-size: 14px;
   color: #ccc;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
+  cursor: pointer;
+
+  input {
+    accent-color: #4fa94d;
+  }
+`;
+
+export const Button = styled.button`
+  padding: 12px;
+  font-size: 16px;
+  background-color: #4fa94d;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-bottom: 12px;
+  font-weight: bold;
+  width: 100%;
+
+  &:hover {
+    background-color: #3c8c3c;
+  }
+`;
+
+export const SubButton = styled.button`
+  padding: 10px;
+  background-color: transparent;
+  color: white;
+  border: 1px solid #555;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  width: 100%;
+  margin-top: 8px;
+
+  &:hover {
+    background-color: #333;
+  }
+`;
+
+export const LogoTitleWrap = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 32px;
 `;
