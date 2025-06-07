@@ -107,9 +107,12 @@ export const Button = styled.button`
   margin-bottom: 12px;
   font-weight: bold;
   width: 100%;
-
   &:hover {
     background-color: #3c8c3c;
+  }
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
   }
 `;
 
@@ -123,9 +126,12 @@ export const SubButton = styled.button`
   cursor: pointer;
   width: 100%;
   margin-top: 8px;
-
   &:hover {
     background-color: #333;
+  }
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
   }
 `;
 
