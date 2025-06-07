@@ -23,7 +23,7 @@ export const LogoSection = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-bottom: 32px;
+  margin-bottom: 15px;
 `;
 
 export const ServiceName = styled.h1`

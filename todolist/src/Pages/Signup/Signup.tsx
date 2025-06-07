@@ -1,155 +1,194 @@
-import React, { useState } from "react";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import React, { useEffect, useRef, useState } from "react";
+import {
+  createUserWithEmailAndPassword,
+  fetchSignInMethodsForEmail,
+} from "firebase/auth";
 import { auth } from "../../Firebase/firebase";
-import { useNavigate } from "react-router-dom";
 import {
   Container,
   SignupBox,
+  TitleWrapper,
   Title,
+  SubTitle,
   Input,
   Button,
-  EmailInput,
-  EmailRow,
   LinkButton,
   InfoText,
+  PasswordWrapper,
+  TogglePasswordButton,
 } from "./Signup.styled";
+import { useNavigate } from "react-router-dom";
+import { Eye, EyeOff } from "lucide-react";
 
 function Signup() {
   const [email, setEmail] = useState("");
+  const [emailValid, setEmailValid] = useState(true);
+  const [emailMessage, setEmailMessage] = useState("");
+  const [isEmailAvailable, setIsEmailAvailable] = useState(true);
+
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [emailMessage, setEmailMessage] = useState("");
-  const [passwordMessage, setPasswordMessage] = useState("");
-  const [confirmMessage, setConfirmMessage] = useState("");
-  const [isEmailValid, setIsEmailValid] = useState(false);
-  const [isPasswordValid, setIsPasswordValid] = useState(false);
-  const [isConfirmValid, setIsConfirmValid] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [passwordStrength, setPasswordStrength] = useState("");
+  const [isConfirmValid, setIsConfirmValid] = useState(true);
+
+  const passwordRef = useRef<HTMLInputElement>(null);
+  const confirmRef = useRef<HTMLInputElement>(null);
+  const emailRef = useRef<HTMLInputElement>(null);
+
+  const [shakeEmail, setShakeEmail] = useState(false);
+  const [shakeConfirm, setShakeConfirm] = useState(false);
+
   const navigate = useNavigate();
 
+  // ✅ 이메일 유효성 + 중복 확인
+  useEffect(() => {
+    const delay = setTimeout(async () => {
+      const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!email) {
+        setEmailMessage("");
+        setEmailValid(true);
+        return;
+      }
+      if (!regex.test(email)) {
+        setEmailMessage("유효한 이메일을 입력해주세요.");
+        setEmailValid(false);
+        return;
+      }
+      try {
+        const methods = await fetchSignInMethodsForEmail(auth, email);
+        if (methods.length > 0) {
+          setEmailMessage("이미 사용 중인 이메일입니다.");
+          setIsEmailAvailable(false);
+        } else {
+          setEmailMessage("사용 가능한 이메일입니다.");
+          setIsEmailAvailable(true);
+        }
+        setEmailValid(true);
+      } catch {
+        setEmailMessage("이메일 확인 중 오류가 발생했습니다.");
+        setEmailValid(false);
+      }
+    }, 500);
+    return () => clearTimeout(delay);
+  }, [email]);
+
+  // ✅ 비밀번호 보안성 체크
+  useEffect(() => {
+    if (!password) {
+      setPasswordStrength("");
+    } else if (
+      password.length >= 10 &&
+      /[A-Z]/.test(password) &&
+      /[\W]/.test(password)
+    ) {
+      setPasswordStrength("강함");
+    } else if (password.length >= 8) {
+      setPasswordStrength("보통");
+    } else {
+      setPasswordStrength("약함");
+    }
+  }, [password]);
+
+  // ✅ 회원가입 처리
   const handleSignup = async () => {
-    const trimmedEmail = email.trim();
-
-    if (!trimmedEmail || !password || !confirmPassword) {
-      alert("모든 항목을 입력해주세요.");
+    if (!emailValid || !isEmailAvailable) {
+      setShakeEmail(true);
+      setTimeout(() => setShakeEmail(false), 500);
       return;
     }
-
-    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!regex.test(trimmedEmail)) {
-      alert("유효한 이메일 형식이 아닙니다.");
-      return;
-    }
-
-    if (password.length < 6) {
-      alert("비밀번호는 최소 6자 이상이어야 합니다.");
-      return;
-    }
-
     if (password !== confirmPassword) {
-      alert("비밀번호가 일치하지 않습니다.");
+      setIsConfirmValid(false);
+      setShakeConfirm(true);
+      setTimeout(() => setShakeConfirm(false), 500);
       return;
     }
 
     try {
-      await createUserWithEmailAndPassword(auth, trimmedEmail, password);
-      alert("회원가입 성공! 로그인해주세요.");
+      await createUserWithEmailAndPassword(auth, email, password);
+      alert("회원가입 성공!");
       navigate("/");
-    } catch (error: any) {
-      console.error("회원가입 실패:", error);
-      let message = "회원가입 실패";
-      switch (error.code) {
-        case "auth/email-already-in-use":
-          message = "이미 사용 중인 이메일입니다.";
-          break;
-        case "auth/weak-password":
-          message = "비밀번호는 최소 6자 이상이어야 합니다.";
-          break;
-        case "auth/invalid-email":
-          message = "잘못된 이메일 형식입니다.";
-          break;
-      }
-      alert(message);
+    } catch {
+      alert("회원가입 실패");
     }
   };
 
   return (
     <Container>
       <SignupBox>
-        <Title>TIMS</Title>
+        <TitleWrapper>
+          <Title>TIMS</Title>
+          <SubTitle>계정을 생성하려면 정보를 입력하세요</SubTitle>
+        </TitleWrapper>
 
-        <EmailRow>
-          <EmailInput
-            type="email"
-            placeholder="이메일"
-            value={email}
-            hasError={!isEmailValid}
-            onChange={(e) => {
-              const trimmed = e.target.value.trim();
-              setEmail(trimmed);
-              const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-              if (regex.test(trimmed)) {
-                setEmailMessage("올바른 이메일 형식입니다.");
-                setIsEmailValid(true);
-              } else {
-                setEmailMessage("유효한 이메일을 입력해주세요.");
-                setIsEmailValid(false);
-              }
-            }}
+        <Input
+          type="email"
+          placeholder="이메일"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          hasError={!emailValid || !isEmailAvailable}
+          shake={shakeEmail}
+          ref={emailRef}
+        />
+        {emailMessage && (
+          <InfoText color={isEmailAvailable ? "#4fa94d" : "#ff6b6b"}>
+            {emailMessage}
+          </InfoText>
+        )}
+
+        <PasswordWrapper>
+          <Input
+            type={showPassword ? "text" : "password"}
+            placeholder="비밀번호"
+            ref={passwordRef}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
           />
-        </EmailRow>
-        <InfoText color={isEmailValid ? "#4fa94d" : "#ff6b6b"}>
-          {emailMessage}
-        </InfoText>
+          <TogglePasswordButton
+            onClick={() => setShowPassword((prev) => !prev)}
+          >
+            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+          </TogglePasswordButton>
+        </PasswordWrapper>
 
-        <Input
-          type="password"
-          placeholder="비밀번호"
-          value={password}
-          onChange={(e) => {
-            const value = e.target.value;
-            setPassword(value);
-            if (value.length >= 6) {
-              setPasswordMessage("사용 가능한 비밀번호입니다.");
-              setIsPasswordValid(true);
-            } else {
-              setPasswordMessage("비밀번호는 최소 6자 이상이어야 합니다.");
-              setIsPasswordValid(false);
+        {password && (
+          <InfoText
+            color={
+              passwordStrength === "강함"
+                ? "#4fa94d"
+                : passwordStrength === "보통"
+                ? "#f1c40f"
+                : "#ff6b6b"
             }
+          >
+            비밀번호 보안성: {passwordStrength}
+          </InfoText>
+        )}
 
-            if (confirmPassword) {
-              if (value === confirmPassword) {
-                setConfirmMessage("비밀번호가 일치합니다.");
-                setIsConfirmValid(true);
-              } else {
-                setConfirmMessage("비밀번호가 일치하지 않습니다.");
-                setIsConfirmValid(false);
-              }
-            }
-          }}
-        />
-        <InfoText color={isPasswordValid ? "#4fa94d" : "#ff6b6b"}>
-          {passwordMessage}
-        </InfoText>
+        <PasswordWrapper>
+          <Input
+            type={showConfirmPassword ? "text" : "password"}
+            placeholder="비밀번호 확인"
+            ref={confirmRef}
+            value={confirmPassword}
+            onChange={(e) => {
+              setConfirmPassword(e.target.value);
+              setIsConfirmValid(e.target.value === password);
+            }}
+            hasError={!isConfirmValid}
+            shake={shakeConfirm}
+          />
+          <TogglePasswordButton
+            onClick={() => setShowConfirmPassword((prev) => !prev)}
+          >
+            {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+          </TogglePasswordButton>
+        </PasswordWrapper>
 
-        <Input
-          type="password"
-          placeholder="비밀번호 확인"
-          value={confirmPassword}
-          onChange={(e) => {
-            const value = e.target.value;
-            setConfirmPassword(value);
-            if (password === value && value.length >= 6) {
-              setConfirmMessage("비밀번호가 일치합니다.");
-              setIsConfirmValid(true);
-            } else {
-              setConfirmMessage("비밀번호가 일치하지 않습니다.");
-              setIsConfirmValid(false);
-            }
-          }}
-        />
-        <InfoText color={isConfirmValid ? "#4fa94d" : "#ff6b6b"}>
-          {confirmMessage}
-        </InfoText>
+        {!isConfirmValid && (
+          <InfoText color="#ff6b6b">비밀번호가 일치하지 않습니다.</InfoText>
+        )}
 
         <Button onClick={handleSignup}>회원가입</Button>
         <LinkButton onClick={() => navigate("/")}>

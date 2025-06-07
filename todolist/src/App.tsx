@@ -18,27 +18,39 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
+        {/* 기본 루트 */}
         <Route
           path="/"
+          element={
+            user ? <Navigate to="/projects" /> : <Navigate to="/login" />
+          }
+        />
+
+        {/* 명시적 로그인 경로 */}
+        <Route
+          path="/login"
           element={user ? <Navigate to="/projects" /> : <Login />}
         />
+
         <Route path="/signup" element={<Signup />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+
+        {/* 보호된 라우트들 */}
         <Route
           path="/projects"
-          element={user ? <ProjectListPage /> : <Navigate to="/" />}
+          element={user ? <ProjectListPage /> : <Navigate to="/login" />}
         />
         <Route
           path="/projects/:projectId/issues"
-          element={user ? <IssueList /> : <Navigate to="/" />}
+          element={user ? <IssueList /> : <Navigate to="/login" />}
         />
         <Route
           path="/projects/:projectId/register"
-          element={user ? <IssueRegister /> : <Navigate to="/" />}
+          element={user ? <IssueRegister /> : <Navigate to="/login" />}
         />
         <Route
           path="/edit/:id"
-          element={user ? <IssueEdit /> : <Navigate to="/" />}
+          element={user ? <IssueEdit /> : <Navigate to="/login" />}
         />
       </Routes>
     </BrowserRouter>

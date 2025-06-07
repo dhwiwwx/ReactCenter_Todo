@@ -1,4 +1,16 @@
-import styled from "styled-components";
+import styled, { keyframes, css } from "styled-components";
+
+// 흔들기 애니메이션
+const shakeAnimation = keyframes`
+  0% { transform: translateX(0); }
+  15% { transform: translateX(-5px); }
+  30% { transform: translateX(5px); }
+  45% { transform: translateX(-4px); }
+  60% { transform: translateX(4px); }
+  75% { transform: translateX(-2px); }
+  90% { transform: translateX(2px); }
+  100% { transform: translateX(0); }
+`;
 
 export const Container = styled.div`
   background-color: #1c1c3c;
@@ -10,9 +22,9 @@ export const Container = styled.div`
 
 export const SignupBox = styled.div`
   background-color: #2c2c54;
-  padding: 48px 36px;
+  padding: 56px 40px;
   border-radius: 20px;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.6);
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -20,26 +32,36 @@ export const SignupBox = styled.div`
   max-width: 90vw;
 `;
 
+export const TitleWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 15px;
+`;
+
 export const Title = styled.h2`
-  font-size: 26px;
+  font-size: 28px;
   color: white;
+  font-weight: bold;
   text-align: center;
-  margin-bottom: 12px; // 🔥 기존보다 1.5배 이상 넓힘
+  margin: 0;
 `;
 
 export const SubTitle = styled.p`
   font-size: 14px;
-  color: #bbb;
+  color: #bbbbcc;
   text-align: center;
-  margin-bottom: 40px; // 🔥 인풋이랑 훨씬 멀리 떨어지게
+  margin-top: 10px;
 `;
 
-export const Input = styled.input<{ hasError?: boolean }>`
-  padding: 12px 14px;
-  margin-bottom: 16px;
-  border: 1px solid ${({ hasError }) => (hasError ? "#ff6b6b" : "#444")};
-  border-radius: 10px;
-  background-color: #1f1f3d;
+// ✅ Input에 shake 애니메이션 조건 추가됨
+export const Input = styled.input<{ hasError?: boolean; shake?: boolean }>`
+  height: 48px;
+  padding: 0 16px;
+  margin-bottom: 18px;
+  border: 1px solid ${({ hasError }) => (hasError ? "#ff6b6b" : "#3b3b60")};
+  border-radius: 12px;
+  background-color: #1e1e3f;
   color: white;
   font-size: 15px;
   width: 100%;
@@ -47,7 +69,7 @@ export const Input = styled.input<{ hasError?: boolean }>`
   transition: all 0.2s ease;
 
   &::placeholder {
-    color: #999;
+    color: #888;
   }
 
   &:focus {
@@ -56,38 +78,50 @@ export const Input = styled.input<{ hasError?: boolean }>`
     box-shadow: 0 0 0 2px
       ${({ hasError }) =>
         hasError ? "rgba(255, 107, 107, 0.4)" : "rgba(79, 169, 77, 0.3)"};
-    background-color: #25254d;
+    background-color: #272752;
   }
+
+  ${({ shake }) =>
+    shake &&
+    css`
+      animation: ${shakeAnimation} 0.4s ease-in-out;
+    `}
 `;
 
 export const EmailRow = styled.div`
   display: flex;
   width: 100%;
-  margin-bottom: 4px;
+  margin-bottom: 0;
 `;
 
 export const EmailInput = styled(Input)`
-  margin-bottom: 0;
+  margin-bottom: 18px;
 `;
 
 export const InfoText = styled.p<{ color: string }>`
   font-size: 13px;
-  margin: 6px 0 12px 4px;
+  margin: -10px 0 16px 6px;
   color: ${({ color }) => color};
   transition: color 0.2s ease;
 `;
 
+export const ErrorText = styled.p`
+  font-size: 13px;
+  color: #ff6b6b;
+  margin: -8px 0 14px 6px;
+`;
+
 export const Button = styled.button`
-  padding: 12px;
+  padding: 14px;
   font-size: 16px;
   background-color: #4fa94d;
   color: white;
   border: none;
-  border-radius: 10px;
+  border-radius: 12px;
   cursor: pointer;
   font-weight: bold;
   width: 100%;
-  margin-top: 8px;
+  margin-top: 10px;
   transition: background-color 0.2s ease;
 
   &:hover {
@@ -106,11 +140,38 @@ export const LinkButton = styled.button`
   color: #b8c1e5;
   font-size: 14px;
   cursor: pointer;
-  margin-top: 16px;
+  margin-top: 20px;
   text-decoration: underline;
-  transition: color 0.2s;
+  transition: color 0.2s ease;
 
   &:hover {
     color: #748ffc;
+  }
+`;
+
+export const PasswordWrapper = styled.div`
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+`;
+
+export const TogglePasswordButton = styled.button`
+  position: absolute;
+  right: 12px;
+  top: 40%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #ccc;
+  cursor: pointer;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+
+  &:hover {
+    color: white;
   }
 `;
