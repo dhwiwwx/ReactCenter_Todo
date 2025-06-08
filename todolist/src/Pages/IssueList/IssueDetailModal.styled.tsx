@@ -118,16 +118,21 @@ export const StatusBadge = styled.div<{ status: string }>`
   color: white;
 `;
 
-export const DeadlineTag = styled.p<{ status: string }>`
-  display: inline;
+export const DeadlineTag = styled.span<{ status: string }>`
+  display: inline-block;
   margin-left: 10px;
+  padding: 2px 8px;
   font-size: 0.85rem;
   font-weight: 600;
-  color: ${({ status }) =>
-    status === "마감 지남"
+  border-radius: 8px;
+  color: #fff;
+  background-color: ${({ status }) =>
+    status.includes("마감 지남")
       ? "#ff6b6b"
-      : status === "오늘 마감"
+      : status.includes("오늘 마감")
       ? "#feca57"
+      : status.includes("임박")
+      ? "#ff9f43"
       : "#48dbfb"};
 `;
 
