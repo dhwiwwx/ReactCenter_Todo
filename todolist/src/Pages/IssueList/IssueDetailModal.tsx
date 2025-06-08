@@ -14,7 +14,7 @@ import {
   StatusRow, // ✅ styled-components로 만든 select (없으면 기본 select로 사용 가능)
 } from "./IssueDetailModal.styled";
 import { db } from "../../Firebase/firebase";
-import { doc, updateDoc } from "firebase/firestore";
+import { doc, updateDoc, arrayUnion } from "firebase/firestore";
 
 interface Issue {
   id: string;
@@ -23,9 +23,11 @@ interface Issue {
   priority: string;
   category?: string;
   reporter?: string;
+  assignee?: string;
   deadline?: string;
   createdAt?: any;
   status?: string;
+  comments?: { text: string; createdAt: string }[];
 }
 
 interface Props {
@@ -44,6 +46,7 @@ export default function IssueDetailModal({
   onStatusChange,
 }: Props) {
   const [status, setStatus] = useState(issue.status || "할 일");
+  const [comment, setComment] = useState("");
 
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
@@ -72,7 +75,9 @@ export default function IssueDetailModal({
     const diff = Math.ceil(
       (due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
     );
-    if (diff > 0) return `D-${diff}`;
+    if (diff > 0) {
+      return diff <= 3 ? `D-${diff} 임박` : `D-${diff}`;
+    }
     if (diff === 0) return "오늘 마감";
     return "마감 지남";
   };
@@ -84,6 +89,18 @@ export default function IssueDetailModal({
       if (onStatusChange) onStatusChange(); // ✅ 리스트 리프레시 요청
     } catch (err) {
       alert("상태 변경 실패");
+      console.error(err);
+    }
+  };
+
+  const handleAddComment = async () => {
+    if (!comment.trim()) return;
+    try {
+      await updateDoc(doc(db, "issues", issue.id), {
+        comments: arrayUnion({ text: comment, createdAt: new Date().toISOString() }),
+      });
+      setComment("");
+    } catch (err) {
       console.error(err);
     }
   };
@@ -121,6 +138,11 @@ export default function IssueDetailModal({
             <span>작성자:</span> {issue.reporter}
           </Field>
         )}
+        {issue.assignee && (
+          <Field>
+            <span>담당자:</span> {issue.assignee}
+          </Field>
+        )}
         {issue.createdAt && (
           <Field>
             <span>작성일:</span> {formatDate(issue.createdAt)}
@@ -134,6 +156,23 @@ export default function IssueDetailModal({
             </DeadlineTag>
           </Field>
         )}
+
+        {issue.comments && issue.comments.length > 0 && (
+          <div>
+            {issue.comments.map((c, idx) => (
+              <Field key={idx}>{c.text}</Field>
+            ))}
+          </div>
+        )}
+        <div style={{ display: "flex", gap: "8px", marginTop: "8px" }}>
+          <input
+            style={{ flex: 1 }}
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            placeholder="댓글 입력"
+          />
+          <button onClick={handleAddComment}>등록</button>
+        </div>
 
         <ButtonGroup>
           <CloseButton onClick={onClose}>닫기</CloseButton>
