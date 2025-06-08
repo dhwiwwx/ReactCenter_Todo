@@ -1,4 +1,15 @@
-import styled from "styled-components";
+import styled, { keyframes } from "styled-components";
+
+const fadeIn = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+`;
 
 export const Container = styled.div`
   padding: 24px;
@@ -17,6 +28,7 @@ export const ProjectList = styled.ul`
   list-style: none;
   padding: 0;
   margin-top: 12px;
+  animation: ${fadeIn} 0.3s ease;
 `;
 
 export const CardGrid = styled.ul`
@@ -26,6 +38,7 @@ export const CardGrid = styled.ul`
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
   gap: 12px;
+  animation: ${fadeIn} 0.3s ease;
 `;
 
 export const InputRow = styled.div`
@@ -93,6 +106,7 @@ export const ProjectItem = styled.li`
   font-size: 16px;
   transition: background-color 0.2s ease, transform 0.2s ease,
     box-shadow 0.2s ease;
+  animation: ${fadeIn} 0.3s ease;
 
   span {
     cursor: pointer;
@@ -121,6 +135,7 @@ export const CardItem = styled.li`
   gap: 8px;
   transition: background-color 0.2s ease, transform 0.2s ease,
     box-shadow 0.2s ease;
+  animation: ${fadeIn} 0.3s ease;
 
   &:hover {
     background-color: #3b3e7a;
@@ -239,4 +254,13 @@ export const ErrorMessage = styled.p`
   color: #ff6b6b;
   margin: 0 0 8px 0;
   font-size: 14px;
+`;
+
+export const PinnedBar = styled.div`
+  position: sticky;
+  top: 0;
+  background-color: #1e2045;
+  padding: 8px;
+  z-index: 1;
+  border-bottom: 1px solid #3a3d70;
 `;
