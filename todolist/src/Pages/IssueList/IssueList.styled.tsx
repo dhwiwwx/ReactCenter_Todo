@@ -362,10 +362,12 @@ export const PageButton = styled.button<{ active?: boolean }>`
 export const DeadlineTag = styled.p<{ status: string }>`
   font-size: 0.9rem;
   color: ${({ status }) =>
-    status === "마감 지남"
+    status.includes("마감 지남")
       ? "#ff6b6b"
-      : status === "오늘 마감"
+      : status.includes("오늘 마감")
       ? "#feca57"
+      : status.includes("임박")
+      ? "#ff9f43"
       : "#48dbfb"};
   margin-top: 4px;
 `;
@@ -420,4 +422,20 @@ export const BackButton = styled.button`
   svg {
     margin-right: 6px;
   }
+`;
+
+export const ProgressContainer = styled.div`
+  width: 90%;
+  max-width: 1000px;
+  margin: 0 auto 10px auto;
+  background: #444;
+  border-radius: 8px;
+  overflow: hidden;
+`;
+
+export const ProgressBar = styled.div<{ percent: number }>`
+  height: 8px;
+  background: #51cf66;
+  width: ${({ percent }) => percent}%;
+  transition: width 0.3s ease;
 `;

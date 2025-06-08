@@ -24,6 +24,7 @@ function IssueEdit() {
 
   const [title, setTitle] = useState("");
   const [reporter, setReporter] = useState("");
+  const [assignee, setAssignee] = useState("");
   const [description, setDescription] = useState("");
   const [priority, setPriority] = useState("중간");
   const [category, setCategory] = useState("버그");
@@ -35,6 +36,7 @@ function IssueEdit() {
     const applyData = (data: any) => {
       setTitle(data.title || "");
       setReporter(data.reporter || "");
+      setAssignee(data.assignee || "");
       setDescription(data.description || "");
       setPriority(data.priority || "중간");
       setCategory(data.category || "버그");
@@ -64,6 +66,7 @@ function IssueEdit() {
     if (!title.trim()) return "제목을 입력해주세요.";
     if (!reporter.trim()) return "작성자 이름을 입력해주세요.";
     if (!description.trim()) return "상세 내용을 입력해주세요.";
+    if (!assignee.trim()) return "담당자를 입력해주세요.";
     return null;
   };
 
@@ -82,6 +85,7 @@ function IssueEdit() {
         description,
         priority,
         category,
+        assignee,
         deadline: deadline ? new Date(deadline).toISOString() : null,
         status,
       });
@@ -108,6 +112,11 @@ function IssueEdit() {
             placeholder="작성자"
             value={reporter}
             onChange={(e) => setReporter(e.target.value)}
+          />
+          <Input
+            placeholder="담당자"
+            value={assignee}
+            onChange={(e) => setAssignee(e.target.value)}
           />
           <TextArea
             placeholder="상세 내용"
