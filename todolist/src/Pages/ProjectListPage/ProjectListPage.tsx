@@ -63,8 +63,11 @@ const ProjectListPage = () => {
   const [search, setSearch] = useState("");
   const [recentProjectId, setRecentProjectId] = useState<string | null>(null);
   const [draggedId, setDraggedId] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<'list' | 'card'>('list');
+  const [viewMode, setViewMode] = useState<"list" | "card">(() => {
+    return (localStorage.getItem("viewMode") as "list" | "card") || "list";
+  });
   const [errorMessage, setErrorMessage] = useState<string>("");
+  const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
 
@@ -74,6 +77,7 @@ const ProjectListPage = () => {
   };
 
   const fetchProjects = async () => {
+    setLoading(true);
     const projectSnapshot = await getDocs(collection(db, "projects"));
 
     const data = await Promise.all(
@@ -112,14 +116,28 @@ const ProjectListPage = () => {
 
     const mostRecent = filtered.reduce<Project | null>((prev, cur) => {
       if (!prev) return cur;
-      const prevTime = prev.lastViewedAt ? new Date(prev.lastViewedAt).getTime() : 0;
-      const curTime = cur.lastViewedAt ? new Date(cur.lastViewedAt).getTime() : 0;
+      const prevTime = prev.lastViewedAt
+        ? new Date(prev.lastViewedAt).getTime()
+        : 0;
+      const curTime = cur.lastViewedAt
+        ? new Date(cur.lastViewedAt).getTime()
+        : 0;
       return curTime > prevTime ? cur : prev;
     }, null);
 
     setRecentProjectId(mostRecent ? mostRecent.id : null);
 
     setProjects(sorted);
+
+    setLoading(false);
+  };
+
+  const toggleViewMode = () => {
+    setViewMode((prev) => {
+      const next = prev === "list" ? "card" : "list";
+      localStorage.setItem("viewMode", next);
+      return next;
+    });
   };
 
   useEffect(() => {
@@ -134,7 +152,9 @@ const ProjectListPage = () => {
 
   const confirmEdit = async () => {
     if (!editingId) return;
-    if (projects.some((p) => p.id !== editingId && p.name === editingName.trim())) {
+    if (
+      projects.some((p) => p.id !== editingId && p.name === editingName.trim())
+    ) {
       setErrorMessage("동일한 이름의 프로젝트가 이미 존재합니다.");
       alert("동일한 이름의 프로젝트가 이미 존재합니다.");
       return;
@@ -211,7 +231,9 @@ const ProjectListPage = () => {
 
   const saveProjectOrder = async (list: Project[]) => {
     await Promise.all(
-      list.map((p, index) => updateDoc(doc(db, "projects", p.id), { order: index }))
+      list.map((p, index) =>
+        updateDoc(doc(db, "projects", p.id), { order: index })
+      )
     );
   };
 
@@ -257,14 +279,12 @@ const ProjectListPage = () => {
           </span>
         </Title>
         <div style={{ display: "flex", gap: "8px" }}>
-          <ViewToggleButton
-            onClick={() =>
-              setViewMode((prev) => (prev === "list" ? "card" : "list"))
-            }
-          >
+          <ViewToggleButton onClick={toggleViewMode}>
             {viewMode === "list" ? "카드형" : "리스트형"}
           </ViewToggleButton>
-          <StyledLogoutButton onClick={handleSignOut}>로그아웃</StyledLogoutButton>
+          <StyledLogoutButton onClick={handleSignOut}>
+            로그아웃
+          </StyledLogoutButton>
         </div>
       </div>
 
@@ -297,8 +317,11 @@ const ProjectListPage = () => {
       </InputRow>
 
       {errorMessage && <ErrorMessage>{errorMessage}</ErrorMessage>}
-
-      {viewMode === "list" ? (
+      {loading ? (
+        <div style={{ textAlign: "center", padding: "40px", fontSize: "18px" }}>
+          불러오는 중...
+        </div>
+      ) : viewMode === "list" ? (
         <ProjectList>
           {filteredProjects.map((project) => (
             <ProjectItem
@@ -306,81 +329,85 @@ const ProjectListPage = () => {
               draggable={!project.isPinned}
               onDragStart={() => handleDragStart(project.id)}
               onDragOver={handleDragOver}
-            onDrop={() => handleDrop(project.id)}
-          >
-            {editingId === project.id ? (
-              <div>
-                <EditInput
-                  value={editingName}
-                  onChange={(e) => setEditingName(e.target.value)}
-                />
-                <EditInput
-                  value={editingDescription}
-                  onChange={(e) => setEditingDescription(e.target.value)}
-                />
-                <PinButton onClick={confirmEdit}>
-                  <Check size={18} />
-                </PinButton>
-                <PinButton onClick={cancelEdit}>
-                  <XCircle size={18} />
-                </PinButton>
-              </div>
-            ) : (
-              <span
-                onClick={async () => {
-                  await updateDoc(doc(db, "projects", project.id), {
-                    lastViewedAt: new Date().toISOString(),
-                  });
-                  navigate(`/projects/${project.id}/issues`);
-                }}
-              >
-                {project.name}
-                {project.id === recentProjectId && (
-                  <RecentBadge>최근 본 프로젝트</RecentBadge>
-                )}
-                <span style={{ marginLeft: 8, fontSize: 14, color: "#ccc" }}>
-                  ({project.issueCount ?? 0}건)
-                </span>
-                {project.description && (
-                  <div style={{ fontSize: 12, color: "#aaa" }}>
-                    {project.description}
-                  </div>
-                )}
-              </span>
-            )}
-
-            <ActionGroup>
-              {!showTrash && editingId !== project.id && (
-                <PinButton onClick={() => startEdit(project)}>
-                  <Edit3 size={18} />
-                </PinButton>
-              )}
-              {!showTrash && (
-                <PinButton
-                  onClick={() =>
-                    togglePin(project.id, project.isPinned ?? false)
-                  }
-                >
-                  {project.isPinned ? <PinOff size={20} /> : <Pin size={20} />}
-                </PinButton>
-              )}
-              {showTrash ? (
-                <>
-                  <PinButton onClick={() => restoreProject(project.id)}>
-                    <Undo2 size={20} />
+              onDrop={() => handleDrop(project.id)}
+            >
+              {editingId === project.id ? (
+                <div>
+                  <EditInput
+                    value={editingName}
+                    onChange={(e) => setEditingName(e.target.value)}
+                  />
+                  <EditInput
+                    value={editingDescription}
+                    onChange={(e) => setEditingDescription(e.target.value)}
+                  />
+                  <PinButton onClick={confirmEdit}>
+                    <Check size={18} />
                   </PinButton>
-                  <DeleteButton onClick={() => permanentlyDelete(project.id)}>
-                    <XCircle size={20} />
-                  </DeleteButton>
-                </>
+                  <PinButton onClick={cancelEdit}>
+                    <XCircle size={18} />
+                  </PinButton>
+                </div>
               ) : (
-                <DeleteButton onClick={() => softDeleteProject(project.id)}>
-                  <Trash2 size={20} />
-                </DeleteButton>
+                <span
+                  onClick={async () => {
+                    await updateDoc(doc(db, "projects", project.id), {
+                      lastViewedAt: new Date().toISOString(),
+                    });
+                    navigate(`/projects/${project.id}/issues`);
+                  }}
+                >
+                  {project.name}
+                  {project.id === recentProjectId && (
+                    <RecentBadge>최근 본 프로젝트</RecentBadge>
+                  )}
+                  <span style={{ marginLeft: 8, fontSize: 14, color: "#ccc" }}>
+                    ({project.issueCount ?? 0}건)
+                  </span>
+                  {project.description && (
+                    <div style={{ fontSize: 12, color: "#aaa" }}>
+                      {project.description}
+                    </div>
+                  )}
+                </span>
               )}
-            </ActionGroup>
-          </ProjectItem>
-        ))}
+
+              <ActionGroup>
+                {!showTrash && editingId !== project.id && (
+                  <PinButton onClick={() => startEdit(project)}>
+                    <Edit3 size={18} />
+                  </PinButton>
+                )}
+                {!showTrash && (
+                  <PinButton
+                    onClick={() =>
+                      togglePin(project.id, project.isPinned ?? false)
+                    }
+                  >
+                    {project.isPinned ? (
+                      <PinOff size={20} />
+                    ) : (
+                      <Pin size={20} />
+                    )}
+                  </PinButton>
+                )}
+                {showTrash ? (
+                  <>
+                    <PinButton onClick={() => restoreProject(project.id)}>
+                      <Undo2 size={20} />
+                    </PinButton>
+                    <DeleteButton onClick={() => permanentlyDelete(project.id)}>
+                      <XCircle size={20} />
+                    </DeleteButton>
+                  </>
+                ) : (
+                  <DeleteButton onClick={() => softDeleteProject(project.id)}>
+                    <Trash2 size={20} />
+                  </DeleteButton>
+                )}
+              </ActionGroup>
+            </ProjectItem>
+          ))}
         </ProjectList>
       ) : (
         <CardGrid>
@@ -445,7 +472,11 @@ const ProjectListPage = () => {
                       togglePin(project.id, project.isPinned ?? false)
                     }
                   >
-                    {project.isPinned ? <PinOff size={20} /> : <Pin size={20} />}
+                    {project.isPinned ? (
+                      <PinOff size={20} />
+                    ) : (
+                      <Pin size={20} />
+                    )}
                   </PinButton>
                 )}
                 {showTrash ? (

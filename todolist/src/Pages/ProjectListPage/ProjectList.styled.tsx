@@ -24,7 +24,7 @@ export const CardGrid = styled.ul`
   padding: 0;
   margin-top: 12px;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
   gap: 12px;
 `;
 
@@ -91,7 +91,8 @@ export const ProjectItem = styled.li`
   border-radius: 8px;
   margin-bottom: 10px;
   font-size: 16px;
-  transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  transition: background-color 0.2s ease, transform 0.2s ease,
+    box-shadow 0.2s ease;
 
   span {
     cursor: pointer;
@@ -118,7 +119,8 @@ export const CardItem = styled.li`
   display: flex;
   flex-direction: column;
   gap: 8px;
-  transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  transition: background-color 0.2s ease, transform 0.2s ease,
+    box-shadow 0.2s ease;
 
   &:hover {
     background-color: #3b3e7a;
@@ -126,7 +128,6 @@ export const CardItem = styled.li`
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
   }
 `;
-
 
 export const DeleteButton = styled.button`
   background: none;
