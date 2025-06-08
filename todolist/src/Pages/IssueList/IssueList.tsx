@@ -21,6 +21,8 @@ import {
   PriorityTag,
   ScrollableListWrapper,
   BackButton,
+  ProgressContainer,
+  ProgressBar,
 } from "./IssueList.styled";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -45,9 +47,11 @@ interface Issue {
   priority: string;
   category?: string;
   reporter?: string;
+  assignee?: string;
   deadline?: string;
   createdAt?: any;
   status?: string;
+  comments?: { text: string; createdAt: string }[];
 }
 
 function IssueList() {
@@ -57,6 +61,7 @@ function IssueList() {
   const [sortOrder, setSortOrder] = useState<string>("기본순");
   const [statusFilter, setStatusFilter] = useState<string>("전체");
   const [selectedIssue, setSelectedIssue] = useState<Issue | null>(null);
+  const [visibleCount, setVisibleCount] = useState(10);
   const navigate = useNavigate();
   const { projectId } = useParams<{ projectId: string }>();
 
@@ -83,6 +88,7 @@ function IssueList() {
       })) as Issue[];
 
       setIssues(data);
+      setVisibleCount(10);
     } catch (e) {
       console.error("이슈 불러오기 실패:", e);
       setIssues([]);
@@ -114,7 +120,9 @@ function IssueList() {
     const diff = Math.ceil(
       (due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
     );
-    if (diff > 0) return `D-${diff}`;
+    if (diff > 0) {
+      return diff <= 3 ? `D-${diff} 임박` : `D-${diff}`;
+    }
     if (diff === 0) return "오늘 마감";
     return "마감 지남";
   };
@@ -137,6 +145,11 @@ function IssueList() {
         return getPriorityValue(a.priority) - getPriorityValue(b.priority);
       return 0;
     });
+
+  const progress =
+    issues.length === 0
+      ? 0
+      : (issues.filter((i) => i.status === "완료").length / issues.length) * 100;
 
   return (
     <Container>
@@ -183,7 +196,18 @@ function IssueList() {
         </SortSelect>
       </SearchRow>
 
-      <ScrollableListWrapper>
+      <ProgressContainer>
+        <ProgressBar percent={progress} />
+      </ProgressContainer>
+
+      <ScrollableListWrapper onScroll={(e) => {
+        const { scrollTop, clientHeight, scrollHeight } = e.currentTarget;
+        if (scrollTop + clientHeight >= scrollHeight - 10) {
+          setVisibleCount((v) =>
+            Math.min(v + 10, filtered.length)
+          );
+        }
+      }}>
         {isLoading ? (
           <div
             style={{ display: "flex", justifyContent: "center", marginTop: 60 }}
@@ -196,7 +220,7 @@ function IssueList() {
           </p>
         ) : (
           <List>
-            {filtered.map((issue) => (
+            {filtered.slice(0, visibleCount).map((issue) => (
               <Todo key={issue.id} onClick={() => handleCardClick(issue)}>
                 <NoSelect>
                   <CardWrapper>
@@ -212,6 +236,11 @@ function IssueList() {
                       <PriorityTag priority={issue.priority}>
                         {issue.priority}
                       </PriorityTag>
+                      {issue.assignee && (
+                        <span style={{ marginLeft: "4px", fontSize: "12px" }}>
+                          🧑‍💻 {issue.assignee}
+                        </span>
+                      )}
                     </CardMeta>
                     {issue.deadline && (
                       <DeadlineTag status={getDeadlineStatus(issue.deadline)}>

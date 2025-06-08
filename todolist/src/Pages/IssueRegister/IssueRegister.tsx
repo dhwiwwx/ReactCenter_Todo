@@ -19,6 +19,7 @@ import { useNavigate, useParams } from "react-router-dom";
 function IssueRegister() {
   const [title, setTitle] = useState("");
   const [reporter, setReporter] = useState("");
+  const [assignee, setAssignee] = useState("");
   const [description, setDescription] = useState("");
   const [priority, setPriority] = useState("중간");
   const [category, setCategory] = useState("버그");
@@ -47,6 +48,7 @@ function IssueRegister() {
     if (!title.trim()) return "제목을 입력해주세요.";
     if (!reporter.trim()) return "작성자 이름을 입력해주세요.";
     if (!description.trim()) return "상세 내용을 입력해주세요.";
+    if (!assignee.trim()) return "담당자를 입력해주세요.";
     if (!deadline.trim()) return "마감일을 선택해주세요.";
     return null;
   };
@@ -65,6 +67,7 @@ function IssueRegister() {
         description,
         priority,
         category,
+        assignee,
         projectId,
         deadline: deadline ? new Date(deadline).toISOString() : null,
         createdAt: Timestamp.now(),
@@ -93,6 +96,11 @@ function IssueRegister() {
             placeholder="작성자 이름을 입력하세요"
             value={reporter}
             onChange={(e) => setReporter(e.target.value)}
+          />
+          <Input
+            placeholder="담당자 이름을 입력하세요"
+            value={assignee}
+            onChange={(e) => setAssignee(e.target.value)}
           />
           <TextArea
             placeholder="상세 내용을 입력하세요"
