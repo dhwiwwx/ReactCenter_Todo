@@ -108,6 +108,11 @@ function IssueRegister() {
               setAssignee(e.target.value)
             }
           />
+          <Input
+            placeholder="담당자 이름을 입력하세요"
+            value={assignee}
+            onChange={(e) => setAssignee(e.target.value)}
+          />
           <TextArea
             placeholder="상세 내용을 입력하세요"
             value={description}

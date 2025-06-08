@@ -153,7 +153,8 @@ function IssueList() {
   const progress =
     issues.length === 0
       ? 0
-      : (issues.filter((i) => i.status === "완료").length / issues.length) * 100;
+      : (issues.filter((i) => i.status === "완료").length / issues.length) *
+        100;
 
   return (
     <Container>
@@ -174,9 +175,7 @@ function IssueList() {
         <SearchInput
           placeholder="제목 또는 설명 검색"
           value={searchInput}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-            setSearchInput(e.target.value)
-          }
+          onChange={(e) => setSearchInput(e.target.value)}
         />
         <StyledRegisterButton
           onClick={() => navigate(`/projects/${projectId}/register`)}
@@ -185,9 +184,7 @@ function IssueList() {
         </StyledRegisterButton>
         <SortSelect
           value={sortOrder}
-          onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-            setSortOrder(e.target.value)
-          }
+          onChange={(e) => setSortOrder(e.target.value)}
         >
           <option value="기본순">기본순</option>
           <option value="우선순위 높은순">우선순위 높은순</option>
@@ -195,9 +192,7 @@ function IssueList() {
         </SortSelect>
         <SortSelect
           value={statusFilter}
-          onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-            setStatusFilter(e.target.value)
-          }
+          onChange={(e) => setStatusFilter(e.target.value)}
         >
           <option value="전체">전체</option>
           <option value="할 일">할 일</option>
@@ -214,16 +209,12 @@ function IssueList() {
         onScroll={(e: React.UIEvent<HTMLDivElement>) => {
           const { scrollTop, clientHeight, scrollHeight } = e.currentTarget;
           if (scrollTop + clientHeight >= scrollHeight - 10) {
-            setVisibleCount((v: number) =>
-              Math.min(v + 10, filtered.length)
-            );
+            setVisibleCount((v) => Math.min(v + 10, filtered.length));
           }
         }}
       >
         {isLoading ? (
-          <div
-            style={{ display: "flex", justifyContent: "center", marginTop: 60 }}
-          >
+          <div style={{ display: "flex", justifyContent: "center", marginTop: 60 }}>
             <Circles height="80" width="80" color="#4fa94d" />
           </div>
         ) : filtered.length === 0 ? (
@@ -242,9 +233,7 @@ function IssueList() {
                     <CardTitle>{issue.title}</CardTitle>
                     <CardDescription>{issue.description}</CardDescription>
                     <CardMeta>
-                      {issue.category && (
-                        <CategoryTag>{issue.category}</CategoryTag>
-                      )}
+                      {issue.category && <CategoryTag>{issue.category}</CategoryTag>}
                       <PriorityTag priority={issue.priority}>
                         {issue.priority}
                       </PriorityTag>

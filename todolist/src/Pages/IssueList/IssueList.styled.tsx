@@ -442,7 +442,6 @@ export const ProgressContainer = styled.div`
   border-radius: 8px;
   overflow: hidden;
 `;
-
 export const ProgressBar = styled.div<{ percent: number }>`
   height: 8px;
   background: ${({ percent }) =>
