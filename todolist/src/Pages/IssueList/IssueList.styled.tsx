@@ -372,6 +372,7 @@ export const DeadlineTag = styled.span<{ status: string }>`
   border-radius: 8px;
   color: #fff;
   background-color: ${({ status }) =>
+  color: ${({ status }) =>
     status.includes("마감 지남")
       ? "#ff6b6b"
       : status.includes("오늘 마감")
@@ -449,4 +450,7 @@ export const ProgressBar = styled.div<{ percent: number }>`
     percent < 30 ? "#ff6b6b" : percent < 70 ? "#feca57" : "#51cf66"};
   width: ${({ percent }) => percent}%;
   transition: width 0.3s ease, background 0.3s ease;
+  background: #51cf66;
+  width: ${({ percent }) => percent}%;
+  transition: width 0.3s ease;
 `;
