@@ -90,26 +90,36 @@ function IssueRegister() {
           <Input
             placeholder="제목을 입력하세요"
             value={title}
-            onChange={(e) => setTitle(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setTitle(e.target.value)
+            }
           />
           <Input
             placeholder="작성자 이름을 입력하세요"
             value={reporter}
-            onChange={(e) => setReporter(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setReporter(e.target.value)
+            }
           />
           <Input
             placeholder="담당자 이름을 입력하세요"
             value={assignee}
-            onChange={(e) => setAssignee(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setAssignee(e.target.value)
+            }
           />
           <TextArea
             placeholder="상세 내용을 입력하세요"
             value={description}
-            onChange={(e) => setDescription(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+              setDescription(e.target.value)
+            }
           />
           <Select
             value={priority}
-            onChange={(e) => setPriority(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+              setPriority(e.target.value)
+            }
           >
             <option value="높음">높음</option>
             <option value="중간">중간</option>
@@ -117,7 +127,9 @@ function IssueRegister() {
           </Select>
           <Select
             value={category}
-            onChange={(e) => setCategory(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+              setCategory(e.target.value)
+            }
           >
             <option value="버그">버그</option>
             <option value="기능 요청">기능 요청</option>
@@ -128,7 +140,9 @@ function IssueRegister() {
           <Input value={createdAtFormatted} disabled readOnly />
           <DeadlineInput
             value={deadline}
-            onChange={(e) => setDeadline(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setDeadline(e.target.value)
+            }
             placeholder="마감일을 선택하세요"
           />
           <ButtonGroup>

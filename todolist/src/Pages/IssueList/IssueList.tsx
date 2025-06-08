@@ -101,6 +101,10 @@ function IssueList() {
     fetchIssues();
   }, [projectId]);
 
+  useEffect(() => {
+    setVisibleCount(10);
+  }, [searchInput, sortOrder, statusFilter]);
+
   const handleCardClick = (issue: Issue) => setSelectedIssue(issue);
   const handleCloseModal = () => setSelectedIssue(null);
   const handleEditIssue = (id: string, issue: Issue) => {
@@ -170,7 +174,9 @@ function IssueList() {
         <SearchInput
           placeholder="제목 또는 설명 검색"
           value={searchInput}
-          onChange={(e) => setSearchInput(e.target.value)}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+            setSearchInput(e.target.value)
+          }
         />
         <StyledRegisterButton
           onClick={() => navigate(`/projects/${projectId}/register`)}
@@ -179,7 +185,9 @@ function IssueList() {
         </StyledRegisterButton>
         <SortSelect
           value={sortOrder}
-          onChange={(e) => setSortOrder(e.target.value)}
+          onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+            setSortOrder(e.target.value)
+          }
         >
           <option value="기본순">기본순</option>
           <option value="우선순위 높은순">우선순위 높은순</option>
@@ -187,7 +195,9 @@ function IssueList() {
         </SortSelect>
         <SortSelect
           value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
+          onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+            setStatusFilter(e.target.value)
+          }
         >
           <option value="전체">전체</option>
           <option value="할 일">할 일</option>
@@ -200,14 +210,16 @@ function IssueList() {
         <ProgressBar percent={progress} />
       </ProgressContainer>
 
-      <ScrollableListWrapper onScroll={(e) => {
-        const { scrollTop, clientHeight, scrollHeight } = e.currentTarget;
-        if (scrollTop + clientHeight >= scrollHeight - 10) {
-          setVisibleCount((v) =>
-            Math.min(v + 10, filtered.length)
-          );
-        }
-      }}>
+      <ScrollableListWrapper
+        onScroll={(e: React.UIEvent<HTMLDivElement>) => {
+          const { scrollTop, clientHeight, scrollHeight } = e.currentTarget;
+          if (scrollTop + clientHeight >= scrollHeight - 10) {
+            setVisibleCount((v: number) =>
+              Math.min(v + 10, filtered.length)
+            );
+          }
+        }}
+      >
         {isLoading ? (
           <div
             style={{ display: "flex", justifyContent: "center", marginTop: 60 }}
