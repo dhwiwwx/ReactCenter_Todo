@@ -101,6 +101,10 @@ function IssueList() {
     fetchIssues();
   }, [projectId]);
 
+  useEffect(() => {
+    setVisibleCount(10);
+  }, [searchInput, sortOrder, statusFilter]);
+
   const handleCardClick = (issue: Issue) => setSelectedIssue(issue);
   const handleCloseModal = () => setSelectedIssue(null);
   const handleEditIssue = (id: string, issue: Issue) => {
@@ -149,7 +153,8 @@ function IssueList() {
   const progress =
     issues.length === 0
       ? 0
-      : (issues.filter((i) => i.status === "완료").length / issues.length) * 100;
+      : (issues.filter((i) => i.status === "완료").length / issues.length) *
+        100;
 
   return (
     <Container>
@@ -200,18 +205,16 @@ function IssueList() {
         <ProgressBar percent={progress} />
       </ProgressContainer>
 
-      <ScrollableListWrapper onScroll={(e) => {
-        const { scrollTop, clientHeight, scrollHeight } = e.currentTarget;
-        if (scrollTop + clientHeight >= scrollHeight - 10) {
-          setVisibleCount((v) =>
-            Math.min(v + 10, filtered.length)
-          );
-        }
-      }}>
+      <ScrollableListWrapper
+        onScroll={(e: React.UIEvent<HTMLDivElement>) => {
+          const { scrollTop, clientHeight, scrollHeight } = e.currentTarget;
+          if (scrollTop + clientHeight >= scrollHeight - 10) {
+            setVisibleCount((v) => Math.min(v + 10, filtered.length));
+          }
+        }}
+      >
         {isLoading ? (
-          <div
-            style={{ display: "flex", justifyContent: "center", marginTop: 60 }}
-          >
+          <div style={{ display: "flex", justifyContent: "center", marginTop: 60 }}>
             <Circles height="80" width="80" color="#4fa94d" />
           </div>
         ) : filtered.length === 0 ? (
@@ -230,9 +233,7 @@ function IssueList() {
                     <CardTitle>{issue.title}</CardTitle>
                     <CardDescription>{issue.description}</CardDescription>
                     <CardMeta>
-                      {issue.category && (
-                        <CategoryTag>{issue.category}</CategoryTag>
-                      )}
+                      {issue.category && <CategoryTag>{issue.category}</CategoryTag>}
                       <PriorityTag priority={issue.priority}>
                         {issue.priority}
                       </PriorityTag>
