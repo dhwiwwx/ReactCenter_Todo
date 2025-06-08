@@ -9,6 +9,8 @@ import {
   XCircle,
   Edit3,
   Check,
+  Archive,
+  ArchiveX,
 } from "lucide-react";
 import {
   Container,
@@ -29,6 +31,7 @@ import {
   StyledLogoutButton,
   ViewToggleButton,
   ErrorMessage,
+  PinnedBar,
 } from "./ProjectList.styled";
 import { db, auth } from "../../Firebase/firebase";
 import { signOut } from "firebase/auth";
@@ -48,6 +51,7 @@ interface Project {
   issueCount?: number;
   isPinned?: boolean;
   isDeleted?: boolean;
+  isArchived?: boolean;
   lastViewedAt?: string;
   order?: number;
 }
@@ -60,6 +64,7 @@ const ProjectListPage = () => {
   const [editingName, setEditingName] = useState("");
   const [editingDescription, setEditingDescription] = useState("");
   const [showTrash, setShowTrash] = useState(false);
+  const [showArchive, setShowArchive] = useState(false);
   const [search, setSearch] = useState("");
   const [recentProjectId, setRecentProjectId] = useState<string | null>(null);
   const [draggedId, setDraggedId] = useState<string | null>(null);
@@ -95,13 +100,16 @@ const ProjectListPage = () => {
           issueCount,
           isPinned: data.isPinned || false,
           isDeleted: data.isDeleted || false,
+          isArchived: data.isArchived || false,
           lastViewedAt: data.lastViewedAt || null,
           order: data.order ?? 0,
         } as Project;
       })
     );
 
-    const filtered = data.filter((p) => p.isDeleted === showTrash);
+    const filtered = data.filter(
+      (p) => p.isDeleted === showTrash && p.isArchived === showArchive
+    );
 
     const sorted = filtered.sort((a, b) => {
       if (a.isPinned && !b.isPinned) return -1;
@@ -142,7 +150,7 @@ const ProjectListPage = () => {
 
   useEffect(() => {
     fetchProjects();
-  }, [showTrash]);
+  }, [showTrash, showArchive]);
 
   const startEdit = (project: Project) => {
     setEditingId(project.id);
@@ -188,6 +196,7 @@ const ProjectListPage = () => {
       description: newDescription.trim(),
       isPinned: false,
       isDeleted: false,
+      isArchived: false,
       lastViewedAt: new Date().toISOString(),
       order: maxOrder + 1,
     });
@@ -211,6 +220,20 @@ const ProjectListPage = () => {
     await updateDoc(doc(db, "projects", projectId), {
       isDeleted: false,
       deletedAt: null,
+    });
+    fetchProjects();
+  };
+
+  const archiveProject = async (projectId: string) => {
+    await updateDoc(doc(db, "projects", projectId), {
+      isArchived: true,
+    });
+    fetchProjects();
+  };
+
+  const unarchiveProject = async (projectId: string) => {
+    await updateDoc(doc(db, "projects", projectId), {
+      isArchived: false,
     });
     fetchProjects();
   };
@@ -260,8 +283,12 @@ const ProjectListPage = () => {
   };
 
   const filteredProjects = projects.filter((project) =>
-    project.name.toLowerCase().includes(search.toLowerCase())
+    project.name.toLowerCase().includes(search.toLowerCase()) ||
+    (project.description || "").toLowerCase().includes(search.toLowerCase())
   );
+
+  const pinnedProjects = filteredProjects.filter((p) => p.isPinned);
+  const otherProjects = filteredProjects.filter((p) => !p.isPinned);
 
   return (
     <Container>
@@ -298,6 +325,9 @@ const ProjectListPage = () => {
         <AddButton onClick={() => setShowTrash((prev) => !prev)}>
           {showTrash ? "📂 일반 보기" : "🗑️ 휴지통 보기"}
         </AddButton>
+        <AddButton onClick={() => setShowArchive((prev) => !prev)}>
+          {showArchive ? "📁 프로젝트" : "📁 보관함"}
+        </AddButton>
       </InputRow>
 
       <InputRow>
@@ -317,13 +347,18 @@ const ProjectListPage = () => {
       </InputRow>
 
       {errorMessage && <ErrorMessage>{errorMessage}</ErrorMessage>}
+      {pinnedProjects.length > 0 && (
+        <PinnedBar>
+          고정: {pinnedProjects.map((p) => p.name).join(", ")}
+        </PinnedBar>
+      )}
       {loading ? (
         <div style={{ textAlign: "center", padding: "40px", fontSize: "18px" }}>
           불러오는 중...
         </div>
       ) : viewMode === "list" ? (
         <ProjectList>
-          {filteredProjects.map((project) => (
+          {[...pinnedProjects, ...otherProjects].map((project) => (
             <ProjectItem
               key={project.id}
               draggable={!project.isPinned}
@@ -391,6 +426,17 @@ const ProjectListPage = () => {
                     )}
                   </PinButton>
                 )}
+                {!showTrash && (
+                  showArchive ? (
+                    <PinButton onClick={() => unarchiveProject(project.id)}>
+                      <ArchiveX size={20} />
+                    </PinButton>
+                  ) : (
+                    <PinButton onClick={() => archiveProject(project.id)}>
+                      <Archive size={20} />
+                    </PinButton>
+                  )
+                )}
                 {showTrash ? (
                   <>
                     <PinButton onClick={() => restoreProject(project.id)}>
@@ -411,7 +457,7 @@ const ProjectListPage = () => {
         </ProjectList>
       ) : (
         <CardGrid>
-          {filteredProjects.map((project) => (
+          {[...pinnedProjects, ...otherProjects].map((project) => (
             <CardItem
               key={project.id}
               draggable={!project.isPinned}
@@ -478,6 +524,17 @@ const ProjectListPage = () => {
                       <Pin size={20} />
                     )}
                   </PinButton>
+                )}
+                {!showTrash && (
+                  showArchive ? (
+                    <PinButton onClick={() => unarchiveProject(project.id)}>
+                      <ArchiveX size={20} />
+                    </PinButton>
+                  ) : (
+                    <PinButton onClick={() => archiveProject(project.id)}>
+                      <Archive size={20} />
+                    </PinButton>
+                  )
                 )}
                 {showTrash ? (
                   <>
