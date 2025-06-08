@@ -1,4 +1,3 @@
-// components/IssueDetailModal/IssueDetailModal.styled.ts
 import styled, { keyframes } from "styled-components";
 
 export const fadeIn = keyframes`
@@ -30,30 +29,37 @@ export const Modal = styled.div`
   color: #ffffff;
   padding: 32px;
   border-radius: 16px;
-  width: 420px;
-  max-width: 90%;
+  width: 640px;
+  max-width: 95%;
+  max-height: 90vh;
+  overflow-y: auto;
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
   font-family: "Pretendard", sans-serif;
   animation: ${fadeIn} 0.25s ease-out;
 `;
 
 export const Title = styled.h2`
-  margin-bottom: 16px;
-  font-size: 24px;
+  margin-bottom: 20px;
+  font-size: 22px;
   font-weight: 700;
+  color: #fff;
 `;
 
-export const Field = styled.p`
-  margin: 10px 0;
-  font-size: 15px;
-  line-height: 1.6;
-  color: #ccc;
+export const Field = styled.div`
+  display: flex;
+  margin-bottom: 10px;
 
-  span {
-    display: inline-block;
+  .label {
     width: 80px;
     font-weight: 600;
     color: #aaa;
+    font-size: 14px;
+  }
+
+  .value {
+    flex: 1;
+    font-size: 15px;
+    color: #ccc;
   }
 `;
 
@@ -113,7 +119,7 @@ export const StatusBadge = styled.div<{ status: string }>`
     status === "완료"
       ? "#10ac84"
       : status === "진행 중"
-      ? "#feca57"
+      ? "#54a0ff"
       : "#576574"};
   color: white;
 `;
@@ -149,9 +155,94 @@ export const StatusSelect = styled.select`
     border-color: #4fc3f7;
   }
 `;
+
 export const StatusRow = styled.div`
   display: flex;
   align-items: center;
   gap: 12px;
-  margin: 8px 0;
+  margin: 12px 0;
+`;
+
+export const CommentSection = styled.div`
+  margin-top: 24px;
+`;
+
+export const CommentList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 180px;
+  overflow-y: auto;
+`;
+
+export const CommentItem = styled.div`
+  background: #2a2b3d;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 15px;
+  color: #eee;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+`;
+
+export const CommentInputRow = styled.div`
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+
+  input {
+    flex: 1;
+    padding: 8px;
+    border-radius: 8px;
+    border: none;
+    outline: none;
+    background: #1e1e2f;
+    color: #fff;
+  }
+
+  button {
+    padding: 8px 12px;
+    background: #4dabf7;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+
+    &:hover {
+      background: #339af0;
+    }
+  }
+`;
+
+export const CommentActionRow = styled.div`
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 4px;
+
+  button {
+    padding: 6px 10px;
+    font-size: 13px;
+    border: none;
+    border-radius: 6px;
+    color: white;
+    cursor: pointer;
+  }
+
+  .edit {
+    background: #fab005;
+  }
+
+  .delete {
+    background: #fa5252;
+  }
+
+  .save {
+    background: #51cf66;
+  }
+
+  .cancel {
+    background: #868e96;
+  }
 `;

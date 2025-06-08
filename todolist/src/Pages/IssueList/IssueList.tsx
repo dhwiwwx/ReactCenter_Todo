@@ -51,7 +51,13 @@ interface Issue {
   deadline?: string;
   createdAt?: any;
   status?: string;
-  comments?: { text: string; createdAt: string }[];
+  comments?: Comment[];
+}
+interface Comment {
+  id: string;
+  text: string;
+  createdAt: string;
+  authorId: string;
 }
 
 function IssueList() {
@@ -214,7 +220,9 @@ function IssueList() {
         }}
       >
         {isLoading ? (
-          <div style={{ display: "flex", justifyContent: "center", marginTop: 60 }}>
+          <div
+            style={{ display: "flex", justifyContent: "center", marginTop: 60 }}
+          >
             <Circles height="80" width="80" color="#4fa94d" />
           </div>
         ) : filtered.length === 0 ? (
@@ -233,7 +241,9 @@ function IssueList() {
                     <CardTitle>{issue.title}</CardTitle>
                     <CardDescription>{issue.description}</CardDescription>
                     <CardMeta>
-                      {issue.category && <CategoryTag>{issue.category}</CategoryTag>}
+                      {issue.category && (
+                        <CategoryTag>{issue.category}</CategoryTag>
+                      )}
                       <PriorityTag priority={issue.priority}>
                         {issue.priority}
                       </PriorityTag>

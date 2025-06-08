@@ -11,10 +11,22 @@ import {
   StatusBadge,
   DeadlineTag,
   StatusSelect,
-  StatusRow, // ✅ styled-components로 만든 select (없으면 기본 select로 사용 가능)
+  StatusRow,
+  CommentSection,
+  CommentInputRow,
+  CommentList,
+  CommentItem,
+  CommentActionRow,
 } from "./IssueDetailModal.styled";
-import { db } from "../../Firebase/firebase";
+import { db, auth } from "../../Firebase/firebase";
 import { doc, updateDoc, arrayUnion } from "firebase/firestore";
+
+interface Comment {
+  id: string;
+  text: string;
+  createdAt: string;
+  authorId: string;
+}
 
 interface Issue {
   id: string;
@@ -27,7 +39,7 @@ interface Issue {
   deadline?: string;
   createdAt?: any;
   status?: string;
-  comments?: { text: string; createdAt: string }[];
+  comments?: Comment[];
 }
 
 interface Props {
@@ -46,7 +58,11 @@ export default function IssueDetailModal({
   onStatusChange,
 }: Props) {
   const [status, setStatus] = useState(issue.status || "할 일");
+  const [comments, setComments] = useState<Comment[]>(issue.comments || []);
   const [comment, setComment] = useState("");
+  const [editIndex, setEditIndex] = useState<number | null>(null);
+  const [editText, setEditText] = useState("");
+  const currentUser = auth.currentUser;
 
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
@@ -75,9 +91,7 @@ export default function IssueDetailModal({
     const diff = Math.ceil(
       (due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
     );
-    if (diff > 0) {
-      return diff <= 3 ? `D-${diff} 임박` : `D-${diff}`;
-    }
+    if (diff > 0) return diff <= 3 ? `D-${diff} 임박` : `D-${diff}`;
     if (diff === 0) return "오늘 마감";
     return "마감 지남";
   };
@@ -86,7 +100,7 @@ export default function IssueDetailModal({
     try {
       await updateDoc(doc(db, "issues", issue.id), { status: newStatus });
       setStatus(newStatus);
-      if (onStatusChange) onStatusChange(); // ✅ 리스트 리프레시 요청
+      onStatusChange?.();
     } catch (err) {
       alert("상태 변경 실패");
       console.error(err);
@@ -94,15 +108,34 @@ export default function IssueDetailModal({
   };
 
   const handleAddComment = async () => {
-    if (!comment.trim()) return;
-    try {
-      await updateDoc(doc(db, "issues", issue.id), {
-        comments: arrayUnion({ text: comment, createdAt: new Date().toISOString() }),
-      });
-      setComment("");
-    } catch (err) {
-      console.error(err);
-    }
+    if (!comment.trim() || !currentUser) return;
+    const newComment = {
+      id: crypto.randomUUID(),
+      text: comment,
+      createdAt: new Date().toISOString(),
+      authorId: currentUser.uid,
+    };
+    await updateDoc(doc(db, "issues", issue.id), {
+      comments: arrayUnion(newComment),
+    });
+    setComments((prev) => [...prev, newComment]);
+    setComment("");
+  };
+
+  const handleDeleteComment = async (id: string) => {
+    const filtered = comments.filter((c) => c.id !== id);
+    await updateDoc(doc(db, "issues", issue.id), { comments: filtered });
+    setComments(filtered);
+  };
+
+  const handleEditComment = async (id: string) => {
+    const updated = comments.map((c) =>
+      c.id === id ? { ...c, text: editText } : c
+    );
+    await updateDoc(doc(db, "issues", issue.id), { comments: updated });
+    setComments(updated);
+    setEditIndex(null);
+    setEditText("");
   };
 
   return (
@@ -123,11 +156,9 @@ export default function IssueDetailModal({
         </StatusRow>
 
         <Field>{issue.description}</Field>
-
         <Field>
           <span>우선순위:</span> {issue.priority}
         </Field>
-
         {issue.category && (
           <Field>
             <span>카테고리:</span> {issue.category}
@@ -157,22 +188,70 @@ export default function IssueDetailModal({
           </Field>
         )}
 
-        {issue.comments && issue.comments.length > 0 && (
-          <div>
-            {issue.comments.map((c, idx) => (
-              <Field key={idx}>{c.text}</Field>
+        <CommentSection>
+          <h4 style={{ marginBottom: "8px" }}>💬 댓글</h4>
+          <CommentList>
+            {comments.map((c, idx) => (
+              <CommentItem key={c.id}>
+                {editIndex === idx ? (
+                  <>
+                    <input
+                      value={editText}
+                      onChange={(e) => setEditText(e.target.value)}
+                    />
+                    <CommentActionRow>
+                      <button
+                        className="save"
+                        onClick={() => handleEditComment(c.id)}
+                      >
+                        💾 저장
+                      </button>
+                      <button
+                        className="cancel"
+                        onClick={() => setEditIndex(null)}
+                      >
+                        ❌ 취소
+                      </button>
+                    </CommentActionRow>
+                  </>
+                ) : (
+                  <>
+                    <div>{c.text}</div>
+                    <small>{c.createdAt.slice(0, 16).replace("T", " ")}</small>
+                    {c.authorId === currentUser?.uid && (
+                      <CommentActionRow>
+                        <button
+                          className="edit"
+                          onClick={() => {
+                            setEditIndex(idx);
+                            setEditText(c.text);
+                          }}
+                        >
+                          ✏️ 수정
+                        </button>
+                        <button
+                          className="delete"
+                          onClick={() => handleDeleteComment(c.id)}
+                        >
+                          🗑 삭제
+                        </button>
+                      </CommentActionRow>
+                    )}
+                  </>
+                )}
+              </CommentItem>
             ))}
-          </div>
-        )}
-        <div style={{ display: "flex", gap: "8px", marginTop: "8px" }}>
-          <input
-            style={{ flex: 1 }}
-            value={comment}
-            onChange={(e) => setComment(e.target.value)}
-            placeholder="댓글 입력"
-          />
-          <button onClick={handleAddComment}>등록</button>
-        </div>
+          </CommentList>
+
+          <CommentInputRow>
+            <input
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              placeholder="댓글 입력"
+            />
+            <button onClick={handleAddComment}>등록</button>
+          </CommentInputRow>
+        </CommentSection>
 
         <ButtonGroup>
           <CloseButton onClick={onClose}>닫기</CloseButton>

@@ -114,9 +114,9 @@ export const EditInput = styled.input`
 export const List = styled.div`
   display: grid;
   grid-template-columns: repeat(
-    auto-fill,
-    minmax(240px, 1fr)
-  ); /* ⬅️ 카드 너비 넓힘 */
+    3,
+    minmax(0, 1fr)
+  ); // 💡 3열 고정, 내용이 넘치면 줄바꿈
   gap: 20px;
   width: 90%;
   max-width: 1000px;
@@ -126,8 +126,12 @@ export const List = styled.div`
   border-radius: 12px;
   box-shadow: 19px 17px 2px 1px rgba(0, 0, 0, 0.2);
 
+  @media (max-width: 900px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr)); // 📱 태블릿 대응
+  }
+
   @media (max-width: 600px) {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr; // 📱 모바일 대응
   }
 `;
 
@@ -137,8 +141,9 @@ export const Todo = styled.div`
   padding: 20px;
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(25, 18, 18, 0.1);
-  width: 100%;
   min-height: 150px;
+  width: 100%; // ✅ 유지
+  box-sizing: border-box; // ✅ 중요
   transition: transform 0.2s;
   cursor: pointer;
 
@@ -287,10 +292,11 @@ export const SortSelect = styled.select`
 
 export const CardWrapper = styled.div`
   position: relative;
-  padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px; // 더 넉넉하게
+  padding: 20px;
+  border-radius: 12px;
   color: white;
 `;
 
@@ -307,20 +313,23 @@ export const CardDescription = styled.p`
   color: #f1f1f1;
 `;
 
-export const CardMeta = styled.span`
+export const CardMeta = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
   font-size: 13px;
   color: #aaa;
-  margin-top: auto;
 `;
 
 export const StatusBadge = styled.div<{ status: string }>`
   position: absolute;
-  top: 12px;
-  right: 12px;
+  top: 16px;
+  right: 16px;
   padding: 6px 12px;
   border-radius: 12px;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: bold;
   background-color: ${({ status }) =>
     status === "완료"
       ? "#81c784"
@@ -365,12 +374,11 @@ export const PageButton = styled.button<{ active?: boolean }>`
 `;
 
 export const DeadlineTag = styled.span<{ status: string }>`
-  display: inline-block;
-  padding: 2px 8px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  border-radius: 8px;
-  color: #fff;
+  align-self: flex-end;
+  font-size: 12px;
+  font-weight: bold;
+  padding: 4px 10px;
+  border-radius: 10px;
   background-color: ${({ status }) =>
     status.includes("마감 지남")
       ? "#ff6b6b"
@@ -379,7 +387,8 @@ export const DeadlineTag = styled.span<{ status: string }>`
       : status.includes("임박")
       ? "#ff9f43"
       : "#48dbfb"};
-  margin-top: 4px;
+  color: #fff;
+  margin-top: auto;
 `;
 
 export const Tag = styled.span`
