@@ -24,6 +24,7 @@ function IssueEdit() {
 
   const [title, setTitle] = useState("");
   const [reporter, setReporter] = useState("");
+  const [assignee, setAssignee] = useState("");
   const [description, setDescription] = useState("");
   const [priority, setPriority] = useState("중간");
   const [category, setCategory] = useState("버그");
@@ -35,6 +36,7 @@ function IssueEdit() {
     const applyData = (data: any) => {
       setTitle(data.title || "");
       setReporter(data.reporter || "");
+      setAssignee(data.assignee || "");
       setDescription(data.description || "");
       setPriority(data.priority || "중간");
       setCategory(data.category || "버그");
@@ -64,6 +66,7 @@ function IssueEdit() {
     if (!title.trim()) return "제목을 입력해주세요.";
     if (!reporter.trim()) return "작성자 이름을 입력해주세요.";
     if (!description.trim()) return "상세 내용을 입력해주세요.";
+    if (!assignee.trim()) return "담당자를 입력해주세요.";
     return null;
   };
 
@@ -82,6 +85,7 @@ function IssueEdit() {
         description,
         priority,
         category,
+        assignee,
         deadline: deadline ? new Date(deadline).toISOString() : null,
         status,
       });
@@ -102,22 +106,37 @@ function IssueEdit() {
           <Input
             placeholder="제목"
             value={title}
-            onChange={(e) => setTitle(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setTitle(e.target.value)
+            }
           />
           <Input
             placeholder="작성자"
             value={reporter}
-            onChange={(e) => setReporter(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setReporter(e.target.value)
+            }
+          />
+          <Input
+            placeholder="담당자"
+            value={assignee}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setAssignee(e.target.value)
+            }
           />
           <TextArea
             placeholder="상세 내용"
             value={description}
-            onChange={(e) => setDescription(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+              setDescription(e.target.value)
+            }
           />
 
           <Select
             value={priority}
-            onChange={(e) => setPriority(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+              setPriority(e.target.value)
+            }
           >
             <option value="높음">높음</option>
             <option value="중간">중간</option>
@@ -126,7 +145,9 @@ function IssueEdit() {
 
           <Select
             value={category}
-            onChange={(e) => setCategory(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+              setCategory(e.target.value)
+            }
           >
             <option value="버그">버그</option>
             <option value="기능 요청">기능 요청</option>
@@ -138,10 +159,17 @@ function IssueEdit() {
           <DeadlineInput
             type="date"
             value={deadline}
-            onChange={(e) => setDeadline(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setDeadline(e.target.value)
+            }
           />
 
-          <Select value={status} onChange={(e) => setStatus(e.target.value)}>
+          <Select
+            value={status}
+            onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+              setStatus(e.target.value)
+            }
+          >
             <option value="할 일">할 일</option>
             <option value="진행 중">진행 중</option>
             <option value="완료">완료</option>

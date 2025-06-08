@@ -125,14 +125,19 @@ export const List = styled.div`
   background-color: #373b69;
   border-radius: 12px;
   box-shadow: 19px 17px 2px 1px rgba(0, 0, 0, 0.2);
+
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr;
+  }
 `;
 
 export const Todo = styled.div`
-  background-color: #2c2f4a;
+  background-color: #2c2e50;
+  color: #ffffff;
   padding: 20px;
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(25, 18, 18, 0.1);
-  width: 260px; /* 기존보다 넓게! */
+  width: 100%;
   min-height: 150px;
   transition: transform 0.2s;
   cursor: pointer;
@@ -290,16 +295,16 @@ export const CardWrapper = styled.div`
 `;
 
 export const CardTitle = styled.h3`
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 700;
   margin: 0;
 `;
 
 export const CardDescription = styled.p`
-  font-size: 14px;
+  font-size: 15px;
   margin: 0;
   line-height: 1.4;
-  color: #ccc;
+  color: #f1f1f1;
 `;
 
 export const CardMeta = styled.span`
@@ -359,13 +364,20 @@ export const PageButton = styled.button<{ active?: boolean }>`
   }
 `;
 
-export const DeadlineTag = styled.p<{ status: string }>`
+export const DeadlineTag = styled.span<{ status: string }>`
+  display: inline-block;
+  padding: 2px 8px;
   font-size: 0.9rem;
-  color: ${({ status }) =>
-    status === "마감 지남"
+  font-weight: 600;
+  border-radius: 8px;
+  color: #fff;
+  background-color: ${({ status }) =>
+    status.includes("마감 지남")
       ? "#ff6b6b"
-      : status === "오늘 마감"
+      : status.includes("오늘 마감")
       ? "#feca57"
+      : status.includes("임박")
+      ? "#ff9f43"
       : "#48dbfb"};
   margin-top: 4px;
 `;
@@ -420,4 +432,21 @@ export const BackButton = styled.button`
   svg {
     margin-right: 6px;
   }
+`;
+
+export const ProgressContainer = styled.div`
+  width: 90%;
+  max-width: 1000px;
+  margin: 0 auto 10px auto;
+  background: #444;
+  border-radius: 8px;
+  overflow: hidden;
+`;
+
+export const ProgressBar = styled.div<{ percent: number }>`
+  height: 8px;
+  background: ${({ percent }) =>
+    percent < 30 ? "#ff6b6b" : percent < 70 ? "#feca57" : "#51cf66"};
+  width: ${({ percent }) => percent}%;
+  transition: width 0.3s ease, background 0.3s ease;
 `;
