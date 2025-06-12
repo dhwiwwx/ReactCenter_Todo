@@ -201,6 +201,24 @@ export const RecentBadge = styled.span`
   margin-left: 8px;
 `;
 
+export const ProgressWrapper = styled.div`
+  width: 100%;
+`;
+
+export const ProgressBackground = styled.div`
+  width: 100%;
+  background-color: ${({ theme }) => theme.colors.inputBorder};
+  height: 6px;
+  border-radius: 4px;
+  overflow: hidden;
+`;
+
+export const ProgressBar = styled.div<{ percent: number }>`
+  height: 6px;
+  background-color: ${({ theme }) => theme.colors.primary};
+  width: ${(props) => props.percent}%;
+`;
+
 export const EditInput = styled.input`
   padding: 8px;
   font-size: 14px;
