@@ -14,7 +14,7 @@ const fadeIn = keyframes`
 export const Container = styled.div`
   padding: 24px;
   min-height: 100vh;
-  background-color: #22254b;
+  background-color: ${({ theme }) => theme.colors.background};
   color: #ffffff;
 `;
 
@@ -56,9 +56,9 @@ export const ProjectInput = styled.input`
   flex: 1;
   padding: 8px 10px;
   font-size: 14px;
-  background-color: #2a2e5b;
+  background-color: ${({ theme }) => theme.colors.inputBg};
   color: #fff;
-  border: 1px solid #444c77;
+  border: 1px solid ${({ theme }) => theme.colors.inputBorder};
   border-radius: 6px;
 
   &::placeholder {
@@ -70,9 +70,9 @@ export const DescriptionInput = styled.input`
   flex: 2;
   padding: 8px 10px;
   font-size: 14px;
-  background-color: #2a2e5b;
+  background-color: ${({ theme }) => theme.colors.inputBg};
   color: #fff;
-  border: 1px solid #444c77;
+  border: 1px solid ${({ theme }) => theme.colors.inputBorder};
   border-radius: 6px;
 
   &::placeholder {
@@ -83,7 +83,7 @@ export const DescriptionInput = styled.input`
 export const AddButton = styled.button`
   padding: 8px 12px;
   font-size: 14px;
-  background-color: #4fa94d;
+  background-color: ${({ theme }) => theme.colors.primary};
   color: white;
   border: none;
   border-radius: 6px;
@@ -91,7 +91,22 @@ export const AddButton = styled.button`
   font-weight: bold;
 
   &:hover {
-    background-color: #3b8c3a;
+    background-color: ${({ theme }) => theme.colors.primaryHover};
+  }
+`;
+
+export const ToggleButton = styled.button`
+  padding: 8px 12px;
+  font-size: 14px;
+  background-color: ${({ theme }) => theme.colors.secondary};
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+
+  &:hover {
+    background-color: ${({ theme }) => theme.colors.secondaryHover};
   }
 `;
 
@@ -114,8 +129,8 @@ export const ProjectItem = styled.li`
   justify-content: space-between;
   align-items: center;
   padding: 12px;
-  background-color: #2c2f65;
-  border: 1px solid #3a3d70;
+  background-color: ${({ theme }) => theme.colors.cardBg};
+  border: 1px solid ${({ theme }) => theme.colors.cardBorder};
   border-radius: 8px;
   margin-bottom: 10px;
   font-size: 16px;
@@ -141,8 +156,8 @@ export const ProjectItem = styled.li`
 
 export const CardItem = styled.li`
   padding: 12px;
-  background-color: #2c2f65;
-  border: 1px solid #3a3d70;
+  background-color: ${({ theme }) => theme.colors.cardBg};
+  border: 1px solid ${({ theme }) => theme.colors.cardBorder};
   border-radius: 8px;
   font-size: 16px;
   display: flex;
@@ -166,11 +181,11 @@ export const DeleteButton = styled.button`
   align-items: center;
   justify-content: center;
   padding: 4px;
-  color: #ff6b6b;
+  color: ${({ theme }) => theme.colors.danger};
   cursor: pointer;
 
   &:hover {
-    color: #ff3b3b;
+    color: ${({ theme }) => theme.colors.dangerHover};
   }
 `;
 
@@ -219,7 +234,7 @@ export const SearchInput = styled.input`
 export const SearchButton = styled.button`
   padding: 10px 16px;
   font-size: 16px;
-  background-color: #4fa94d;
+  background-color: ${({ theme }) => theme.colors.primary};
   color: white;
   border: none;
   border-radius: 6px;
@@ -227,7 +242,7 @@ export const SearchButton = styled.button`
   font-weight: bold;
 
   &:hover {
-    background-color: #3b8c3a;
+    background-color: ${({ theme }) => theme.colors.primaryHover};
   }
 `;
 
@@ -240,20 +255,20 @@ export const HeaderRow = styled.div`
 
 export const StyledLogoutButton = styled.button`
   padding: 8px 12px;
-  background-color: #ff4d4f;
+  background-color: ${({ theme }) => theme.colors.logoutBg};
   color: white;
   border: none;
   border-radius: 6px;
   font-size: 14px;
   cursor: pointer;
   &:hover {
-    background-color: #d9363e;
+    background-color: ${({ theme }) => theme.colors.logoutHover};
   }
 `;
 
 export const ViewToggleButton = styled.button`
   padding: 8px 12px;
-  background-color: #4dabf7;
+  background-color: ${({ theme }) => theme.colors.viewToggleBg};
   color: white;
   border: none;
   border-radius: 6px;
@@ -261,12 +276,12 @@ export const ViewToggleButton = styled.button`
   cursor: pointer;
 
   &:hover {
-    background-color: #339af0;
+    background-color: ${({ theme }) => theme.colors.viewToggleHover};
   }
 `;
 
 export const ErrorMessage = styled.p`
-  color: #ff6b6b;
+  color: ${({ theme }) => theme.colors.danger};
   margin: 0 0 8px 0;
   font-size: 14px;
 `;
@@ -274,8 +289,8 @@ export const ErrorMessage = styled.p`
 export const PinnedBar = styled.div`
   position: sticky;
   top: 0;
-  background-color: #1e2045;
+  background-color: ${({ theme }) => theme.colors.pinnedBarBg};
   padding: 8px;
   z-index: 1;
-  border-bottom: 1px solid #3a3d70;
+  border-bottom: 1px solid ${({ theme }) => theme.colors.cardBorder};
 `;
