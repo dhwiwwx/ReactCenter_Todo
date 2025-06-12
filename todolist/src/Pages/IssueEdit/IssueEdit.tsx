@@ -124,11 +124,6 @@ function IssueEdit() {
               setAssignee(e.target.value)
             }
           />
-          <Input
-            placeholder="담당자"
-            value={assignee}
-            onChange={(e) => setAssignee(e.target.value)}
-          />
           <TextArea
             placeholder="상세 내용"
             value={description}

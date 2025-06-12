@@ -23,6 +23,7 @@ import {
   InputRow,
   ProjectInput,
   AddButton,
+  ToggleButton,
   DeleteButton,
   PinButton,
   ActionGroup,
@@ -33,6 +34,7 @@ import {
   ErrorMessage,
   PinnedBar,
 } from "./ProjectList.styled";
+import ProjectEditFields from "./ProjectEditFields";
 import { db, auth } from "../../Firebase/firebase";
 import { signOut } from "firebase/auth";
 import {
@@ -42,6 +44,8 @@ import {
   updateDoc,
   deleteDoc,
   doc,
+  query,
+  where,
 } from "firebase/firestore";
 
 interface Project {
@@ -89,10 +93,12 @@ const ProjectListPage = () => {
       projectSnapshot.docs.map(async (docSnap) => {
         const projectId = docSnap.id;
         const data = docSnap.data();
-        const issueSnapshot = await getDocs(collection(db, "issues"));
-        const issueCount = issueSnapshot.docs.filter(
-          (doc) => doc.data().projectId === projectId
-        ).length;
+        const q = query(
+          collection(db, "issues"),
+          where("projectId", "==", projectId)
+        );
+        const issueSnapshot = await getDocs(q);
+        const issueCount = issueSnapshot.size;
 
         return {
           id: projectId,
@@ -322,12 +328,12 @@ const ProjectListPage = () => {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
-        <AddButton onClick={() => setShowTrash((prev) => !prev)}>
+        <ToggleButton onClick={() => setShowTrash((prev) => !prev)}>
           {showTrash ? "📂 일반 보기" : "🗑️ 휴지통 보기"}
-        </AddButton>
-        <AddButton onClick={() => setShowArchive((prev) => !prev)}>
+        </ToggleButton>
+        <ToggleButton onClick={() => setShowArchive((prev) => !prev)}>
           {showArchive ? "📁 프로젝트" : "📁 보관함"}
-        </AddButton>
+        </ToggleButton>
       </InputRow>
 
       <InputRow>
@@ -367,22 +373,16 @@ const ProjectListPage = () => {
               onDrop={() => handleDrop(project.id)}
             >
               {editingId === project.id ? (
-                <div>
-                  <EditInput
-                    value={editingName}
-                    onChange={(e) => setEditingName(e.target.value)}
-                  />
-                  <EditInput
-                    value={editingDescription}
-                    onChange={(e) => setEditingDescription(e.target.value)}
-                  />
-                  <PinButton onClick={confirmEdit}>
-                    <Check size={18} />
-                  </PinButton>
-                  <PinButton onClick={cancelEdit}>
-                    <XCircle size={18} />
-                  </PinButton>
-                </div>
+                <ProjectEditFields
+                  name={editingName}
+                  description={editingDescription}
+                  onNameChange={(e) => setEditingName(e.target.value)}
+                  onDescriptionChange={(e) =>
+                    setEditingDescription(e.target.value)
+                  }
+                  onConfirm={confirmEdit}
+                  onCancel={cancelEdit}
+                />
               ) : (
                 <span
                   onClick={async () => {
@@ -466,22 +466,16 @@ const ProjectListPage = () => {
               onDrop={() => handleDrop(project.id)}
             >
               {editingId === project.id ? (
-                <div>
-                  <EditInput
-                    value={editingName}
-                    onChange={(e) => setEditingName(e.target.value)}
-                  />
-                  <EditInput
-                    value={editingDescription}
-                    onChange={(e) => setEditingDescription(e.target.value)}
-                  />
-                  <PinButton onClick={confirmEdit}>
-                    <Check size={18} />
-                  </PinButton>
-                  <PinButton onClick={cancelEdit}>
-                    <XCircle size={18} />
-                  </PinButton>
-                </div>
+                <ProjectEditFields
+                  name={editingName}
+                  description={editingDescription}
+                  onNameChange={(e) => setEditingName(e.target.value)}
+                  onDescriptionChange={(e) =>
+                    setEditingDescription(e.target.value)
+                  }
+                  onConfirm={confirmEdit}
+                  onCancel={cancelEdit}
+                />
               ) : (
                 <span
                   onClick={async () => {
