@@ -33,6 +33,9 @@ import {
   ViewToggleButton,
   ErrorMessage,
   PinnedBar,
+  ProgressWrapper,
+  ProgressBackground,
+  ProgressBar,
 } from "./ProjectList.styled";
 import ProjectEditFields from "./ProjectEditFields";
 import { db, auth } from "../../Firebase/firebase";
@@ -58,6 +61,7 @@ interface Project {
   isArchived?: boolean;
   lastViewedAt?: string;
   order?: number;
+  completionRate?: number;
 }
 
 const ProjectListPage = () => {
@@ -100,10 +104,22 @@ const ProjectListPage = () => {
         const issueSnapshot = await getDocs(q);
         const issueCount = issueSnapshot.size;
 
+        const finishedSnapshot = await getDocs(
+          query(
+            collection(db, "issues"),
+            where("projectId", "==", projectId),
+            where("status", "==", "완료")
+          )
+        );
+        const finishedCount = finishedSnapshot.size;
+        const completionRate =
+          issueCount > 0 ? Math.round((finishedCount / issueCount) * 100) : 0;
+
         return {
           id: projectId,
           ...(data as any),
           issueCount,
+          completionRate,
           isPinned: data.isPinned || false,
           isDeleted: data.isDeleted || false,
           isArchived: data.isArchived || false,
@@ -399,6 +415,11 @@ const ProjectListPage = () => {
                   <span style={{ marginLeft: 8, fontSize: 14, color: "#ccc" }}>
                     ({project.issueCount ?? 0}건)
                   </span>
+                  <ProgressWrapper>
+                    <ProgressBackground>
+                      <ProgressBar percent={project.completionRate ?? 0} />
+                    </ProgressBackground>
+                  </ProgressWrapper>
                   {project.description && (
                     <div style={{ fontSize: 12, color: "#aaa" }}>
                       {project.description}
@@ -492,6 +513,11 @@ const ProjectListPage = () => {
                   <span style={{ marginLeft: 8, fontSize: 14, color: "#ccc" }}>
                     ({project.issueCount ?? 0}건)
                   </span>
+                  <ProgressWrapper>
+                    <ProgressBackground>
+                      <ProgressBar percent={project.completionRate ?? 0} />
+                    </ProgressBackground>
+                  </ProgressWrapper>
                   {project.description && (
                     <div style={{ fontSize: 12, color: "#aaa" }}>
                       {project.description}
