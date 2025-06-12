@@ -109,6 +109,21 @@ export const ToggleButton = styled.button`
     background-color: ${({ theme }) => theme.colors.secondaryHover};
   }
 `;
+
+export const ToggleButton = styled.button`
+  padding: 8px 12px;
+  font-size: 14px;
+  background-color: #6c6f7b;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+
+  &:hover {
+    background-color: #5a5d69;
+  }
+`;
 export const ProjectItem = styled.li`
   display: flex;
   justify-content: space-between;

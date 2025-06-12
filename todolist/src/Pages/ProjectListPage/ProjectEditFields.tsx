@@ -27,6 +27,11 @@ const ProjectEditFields: React.FC<ProjectEditFieldsProps> = ({
         <Check size={18} />
       </PinButton>
       <PinButton aria-label="cancel" onClick={onCancel}>
+=======
+      <PinButton onClick={onConfirm}>
+        <Check size={18} />
+      </PinButton>
+      <PinButton onClick={onCancel}>
         <XCircle size={18} />
       </PinButton>
     </div>
