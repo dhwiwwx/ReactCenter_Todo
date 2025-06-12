@@ -23,10 +23,10 @@ const ProjectEditFields: React.FC<ProjectEditFieldsProps> = ({
     <div>
       <EditInput value={name} onChange={onNameChange} />
       <EditInput value={description} onChange={onDescriptionChange} />
-      <PinButton onClick={onConfirm}>
+      <PinButton aria-label="confirm" onClick={onConfirm}>
         <Check size={18} />
       </PinButton>
-      <PinButton onClick={onCancel}>
+      <PinButton aria-label="cancel" onClick={onCancel}>
         <XCircle size={18} />
       </PinButton>
     </div>
