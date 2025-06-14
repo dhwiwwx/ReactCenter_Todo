@@ -133,7 +133,21 @@ export const Input = styled.input`
     animation: ${shake} 0.3s ease-in-out;
   }
 `;
+export const AccountSelect = styled.select`
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  border: 1px solid #444;
+  border-radius: 8px;
+  background-color: #1f1f3d;
+  color: white;
+  font-size: 15px;
+  width: 100%;
+  box-sizing: border-box;
 
+  &:focus {
+    outline: 2px solid #4fa94d;
+  }
+`;
 
 export const PasswordWrapper = styled.div`
   position: relative;

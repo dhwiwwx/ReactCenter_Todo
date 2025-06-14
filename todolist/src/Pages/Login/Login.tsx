@@ -9,7 +9,7 @@ import {
   GoogleAuthProvider,
 } from "firebase/auth";
 import { auth, db } from "../../Firebase/firebase";
-import { setDoc, doc, getDoc } from "firebase/firestore";
+import { setDoc, doc, getDoc, collection, getDocs } from "firebase/firestore";
 import {
   Container,
   LoginBox,
@@ -22,6 +22,7 @@ import {
   TogglePassword,
   PasswordWrapper,
   CheckboxLabel,
+  AccountSelect,
   SNSButton,
   SubButtonRow,
   ShakeWrapper,
@@ -38,6 +39,7 @@ function Login() {
   const [keepLoggedIn, setKeepLoggedIn] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [accountList, setAccountList] = useState<string[]>([]);
   const [shouldShake, setShouldShake] = useState(false);
   const emailRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
@@ -48,6 +50,20 @@ function Login() {
   }, []);
 
 
+  useEffect(() => {
+    const fetchAccounts = async () => {
+      try {
+        const snap = await getDocs(collection(db, "users"));
+        const emails = snap.docs
+          .map((d) => (d.data() as any).email as string | null)
+          .filter((e): e is string => !!e);
+        setAccountList(emails);
+      } catch {
+        // ignore errors
+      }
+    };
+    fetchAccounts();
+  }, []);
 
   const triggerShake = () => {
     setShouldShake(true);
@@ -163,6 +179,19 @@ function Login() {
             }
             autoComplete="email"
           />
+          {accountList.length > 0 && (
+            <AccountSelect
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            >
+              <option value="">계정 선택</option>
+              {accountList.map((mail) => (
+                <option key={mail} value={mail}>
+                  {mail}
+                </option>
+              ))}
+            </AccountSelect>
+          )}
 
 
           <PasswordWrapper>
