@@ -139,8 +139,8 @@ export default function IssueDetailModal({
   };
 
   return (
-    <Backdrop onClick={onClose}>
-      <Modal onClick={(e) => e.stopPropagation()}>
+    <Backdrop>
+      <Modal>
         <Title>{issue.title}</Title>
 
         <StatusRow>
