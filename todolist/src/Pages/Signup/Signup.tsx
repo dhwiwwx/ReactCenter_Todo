@@ -3,7 +3,8 @@ import {
   createUserWithEmailAndPassword,
   fetchSignInMethodsForEmail,
 } from "firebase/auth";
-import { auth } from "../../Firebase/firebase";
+import { auth, db } from "../../Firebase/firebase";
+import { setDoc, doc } from "firebase/firestore";
 import {
   Container,
   SignupBox,
@@ -106,7 +107,11 @@ function Signup() {
     }
 
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
+      const cred = await createUserWithEmailAndPassword(auth, email, password);
+      await setDoc(doc(db, "users", cred.user.uid), {
+        uid: cred.user.uid,
+        email: cred.user.email,
+      });
       alert("회원가입 성공!");
       navigate("/");
     } catch {
