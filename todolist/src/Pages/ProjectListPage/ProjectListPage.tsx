@@ -9,6 +9,7 @@ import {
   XCircle,
   Edit3,
   Check,
+  UserPlus,
   Archive,
   ArchiveX,
 } from "lucide-react";
@@ -49,12 +50,14 @@ import {
   doc,
   query,
   where,
+  arrayUnion,
 } from "firebase/firestore";
 
 interface Project {
   id: string;
   name: string;
   userId?: string;
+  memberIds?: string[];
   description?: string;
   issueCount?: number;
   isPinned?: boolean;
@@ -100,6 +103,7 @@ const ProjectListPage = () => {
     }
     const projectQuery = query(
       collection(db, "projects"),
+      where("memberIds", "array-contains", uid)
       where("userId", "==", uid)
     );
     const projectSnapshot = await getDocs(projectQuery);
@@ -228,6 +232,9 @@ const ProjectListPage = () => {
     );
     await addDoc(collection(db, "projects"), {
       userId: uid,
+
+      memberIds: [uid],
+
       name: newProjectName.trim(),
       description: newDescription.trim(),
       isPinned: false,
@@ -284,6 +291,15 @@ const ProjectListPage = () => {
   const togglePin = async (projectId: string, isPinned: boolean) => {
     await updateDoc(doc(db, "projects", projectId), {
       isPinned: !isPinned,
+    });
+    fetchProjects();
+  };
+
+  const addMember = async (projectId: string) => {
+    const newMember = window.prompt("추가할 사용자 UID를 입력하세요");
+    if (!newMember) return;
+    await updateDoc(doc(db, "projects", projectId), {
+      memberIds: arrayUnion(newMember),
     });
     fetchProjects();
   };
@@ -461,6 +477,12 @@ const ProjectListPage = () => {
                     )}
                   </PinButton>
                 )}
+                {!showTrash &&
+                  project.userId === auth.currentUser?.uid && (
+                    <PinButton onClick={() => addMember(project.id)}>
+                      <UserPlus size={20} />
+                    </PinButton>
+                  )}
                 {!showTrash && (
                   showArchive ? (
                     <PinButton onClick={() => unarchiveProject(project.id)}>
@@ -559,6 +581,12 @@ const ProjectListPage = () => {
                     )}
                   </PinButton>
                 )}
+                {!showTrash &&
+                  project.userId === auth.currentUser?.uid && (
+                    <PinButton onClick={() => addMember(project.id)}>
+                      <UserPlus size={20} />
+                    </PinButton>
+                  )}
                 {!showTrash && (
                   showArchive ? (
                     <PinButton onClick={() => unarchiveProject(project.id)}>
