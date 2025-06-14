@@ -104,6 +104,7 @@ const ProjectListPage = () => {
     const projectQuery = query(
       collection(db, "projects"),
       where("memberIds", "array-contains", uid)
+      where("userId", "==", uid)
     );
     const projectSnapshot = await getDocs(projectQuery);
 
@@ -231,7 +232,9 @@ const ProjectListPage = () => {
     );
     await addDoc(collection(db, "projects"), {
       userId: uid,
+
       memberIds: [uid],
+
       name: newProjectName.trim(),
       description: newDescription.trim(),
       isPinned: false,
