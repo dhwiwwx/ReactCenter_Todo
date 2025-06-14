@@ -52,6 +52,7 @@ import {
   where,
   arrayUnion,
 } from "firebase/firestore";
+import ProjectShareModal from "./ProjectShareModal";
 
 interface Project {
   id: string;
@@ -85,12 +86,20 @@ const ProjectListPage = () => {
   });
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [loading, setLoading] = useState(false);
+  const [users, setUsers] = useState<{ uid: string; email: string | null }[]>([]);
+  const [shareProjectId, setShareProjectId] = useState<string | null>(null);
 
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
     await signOut(auth);
     navigate("/login");
+  };
+
+  const fetchUsers = async () => {
+    const snap = await getDocs(collection(db, "users"));
+    const list = snap.docs.map((d) => ({ uid: d.id, ...(d.data() as any) }));
+    setUsers(list);
   };
 
   const fetchProjects = async () => {
@@ -103,7 +112,7 @@ const ProjectListPage = () => {
     }
     const projectQuery = query(
       collection(db, "projects"),
-      where("memberIds", "array-contains", uid)
+      where("memberIds", "array-contains", uid),
       where("userId", "==", uid)
     );
     const projectSnapshot = await getDocs(projectQuery);
@@ -188,6 +197,10 @@ const ProjectListPage = () => {
   useEffect(() => {
     fetchProjects();
   }, [showTrash, showArchive]);
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
 
   const startEdit = (project: Project) => {
     setEditingId(project.id);
@@ -295,12 +308,16 @@ const ProjectListPage = () => {
     fetchProjects();
   };
 
-  const addMember = async (projectId: string) => {
-    const newMember = window.prompt("추가할 사용자 UID를 입력하세요");
-    if (!newMember) return;
-    await updateDoc(doc(db, "projects", projectId), {
-      memberIds: arrayUnion(newMember),
+  const openShareModal = (projectId: string) => {
+    setShareProjectId(projectId);
+  };
+
+  const handleAddMember = async (uid: string) => {
+    if (!shareProjectId) return;
+    await updateDoc(doc(db, "projects", shareProjectId), {
+      memberIds: arrayUnion(uid),
     });
+    setShareProjectId(null);
     fetchProjects();
   };
 
@@ -479,7 +496,7 @@ const ProjectListPage = () => {
                 )}
                 {!showTrash &&
                   project.userId === auth.currentUser?.uid && (
-                    <PinButton onClick={() => addMember(project.id)}>
+                    <PinButton onClick={() => openShareModal(project.id)}>
                       <UserPlus size={20} />
                     </PinButton>
                   )}
@@ -583,7 +600,7 @@ const ProjectListPage = () => {
                 )}
                 {!showTrash &&
                   project.userId === auth.currentUser?.uid && (
-                    <PinButton onClick={() => addMember(project.id)}>
+                    <PinButton onClick={() => openShareModal(project.id)}>
                       <UserPlus size={20} />
                     </PinButton>
                   )}
@@ -616,6 +633,13 @@ const ProjectListPage = () => {
             </CardItem>
           ))}
         </CardGrid>
+      )}
+      {shareProjectId && (
+        <ProjectShareModal
+          users={users.filter((u) => u.uid !== auth.currentUser?.uid)}
+          onAdd={handleAddMember}
+          onClose={() => setShareProjectId(null)}
+        />
       )}
     </Container>
   );

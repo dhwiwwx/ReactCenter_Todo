@@ -8,7 +8,8 @@ import {
   browserSessionPersistence,
   GoogleAuthProvider,
 } from "firebase/auth";
-import { auth } from "../../Firebase/firebase";
+import { auth, db } from "../../Firebase/firebase";
+import { setDoc, doc, getDoc } from "firebase/firestore";
 import {
   Container,
   LoginBox,
@@ -81,7 +82,14 @@ function Login() {
         auth,
         keepLoggedIn ? browserLocalPersistence : browserSessionPersistence
       );
-      await signInWithEmailAndPassword(auth, email, password);
+      const cred = await signInWithEmailAndPassword(auth, email, password);
+      const userDoc = await getDoc(doc(db, "users", cred.user.uid));
+      if (!userDoc.exists()) {
+        await setDoc(doc(db, "users", cred.user.uid), {
+          uid: cred.user.uid,
+          email: cred.user.email,
+        });
+      }
       navigate("/projects");
     } catch (error: any) {
       switch (error.code) {
@@ -119,7 +127,14 @@ function Login() {
     try {
       setErrorMessage("");
       const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
+      const cred = await signInWithPopup(auth, provider);
+      const userDoc = await getDoc(doc(db, "users", cred.user.uid));
+      if (!userDoc.exists()) {
+        await setDoc(doc(db, "users", cred.user.uid), {
+          uid: cred.user.uid,
+          email: cred.user.email,
+        });
+      }
       navigate("/projects");
     } catch (err) {
       showError("SNS 로그인 실패");
