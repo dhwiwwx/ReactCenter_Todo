@@ -1,4 +1,73 @@
-import styled from "styled-components";
+import styled, { keyframes } from "styled-components";
+
+const shake = keyframes`
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  50% { transform: translateX(5px); }
+  75% { transform: translateX(-5px); }
+`;
+
+const fadeIn = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+`;
+
+const slideUp = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+`;
+
+export const ShakeWrapper = styled.div`
+  &.shake {
+    animation: ${shake} 0.4s ease;
+  }
+`;
+
+export const SubButtonRow = styled.div`
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 12px;
+`;
+
+export const ErrorMessage = styled.div`
+  margin-top: 12px;
+  color: #fa5252;
+  font-size: 14px;
+  animation: ${fadeIn} 0.3s ease-in-out;
+`;
+
+export const SNSButton = styled.button`
+  width: 100%;
+  padding: 10px;
+  margin-top: 8px;
+  background-color: #f1f3f5;
+  border: 1px solid #ced4da;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: background 0.2s;
+
+  &:hover {
+    background-color: #e9ecef;
+  }
+`;
 
 export const Container = styled.div`
   background-color: #1c1c3c;
@@ -17,6 +86,7 @@ export const LoginBox = styled.div`
   flex-direction: column;
   align-items: stretch;
   width: 380px;
+  animation: ${slideUp} 0.6s ease-out;
 `;
 
 export const LogoSection = styled.div`
@@ -58,6 +128,10 @@ export const Input = styled.input`
   &:focus {
     outline: 2px solid #4fa94d;
   }
+
+  &.shake {
+    animation: ${shake} 0.3s ease-in-out;
+  }
 `;
 
 export const PasswordWrapper = styled.div`
@@ -66,18 +140,20 @@ export const PasswordWrapper = styled.div`
 `;
 
 export const TogglePassword = styled.button`
+  all: unset;
   position: absolute;
-  right: 12px;
+  right: 12px; // 오른쪽 여백 조정
   top: 40%;
   transform: translateY(-50%);
-  background: transparent;
-  border: none;
   cursor: pointer;
-  color: #bbb;
-  padding: 0;
+  display: flex;
+  align-items: center;
+  color: white;
 
   &:hover {
-    color: white;
+    background: none;
+    opacity: 1;
+    transform: translateY(-50%);
   }
 `;
 
@@ -126,6 +202,11 @@ export const SubButton = styled.button`
   cursor: pointer;
   width: 100%;
   margin-top: 8px;
+
+  &:last-child {
+    text-align: center;
+  }
+
   &:hover {
     background-color: #333;
   }
