@@ -133,7 +133,6 @@ export const Input = styled.input`
     animation: ${shake} 0.3s ease-in-out;
   }
 `;
-
 export const AccountSelect = styled.select`
   padding: 12px 14px;
   margin-bottom: 16px;
