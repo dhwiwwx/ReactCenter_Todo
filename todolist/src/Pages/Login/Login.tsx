@@ -47,6 +47,8 @@ function Login() {
     emailRef.current?.focus();
   }, []);
 
+
+
   const triggerShake = () => {
     setShouldShake(true);
     setTimeout(() => setShouldShake(false), 500);
@@ -161,6 +163,7 @@ function Login() {
             }
             autoComplete="email"
           />
+
 
           <PasswordWrapper>
             <Input
