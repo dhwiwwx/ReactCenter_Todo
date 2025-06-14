@@ -49,22 +49,6 @@ function Login() {
     emailRef.current?.focus();
   }, []);
 
-
-  useEffect(() => {
-    const fetchAccounts = async () => {
-      try {
-        const snap = await getDocs(collection(db, "users"));
-        const emails = snap.docs
-          .map((d) => (d.data() as any).email as string | null)
-          .filter((e): e is string => !!e);
-        setAccountList(emails);
-      } catch {
-        // ignore errors
-      }
-    };
-    fetchAccounts();
-  }, []);
-
   const triggerShake = () => {
     setShouldShake(true);
     setTimeout(() => setShouldShake(false), 500);
@@ -179,20 +163,6 @@ function Login() {
             }
             autoComplete="email"
           />
-          {accountList.length > 0 && (
-            <AccountSelect
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            >
-              <option value="">계정 선택</option>
-              {accountList.map((mail) => (
-                <option key={mail} value={mail}>
-                  {mail}
-                </option>
-              ))}
-            </AccountSelect>
-          )}
-
 
           <PasswordWrapper>
             <Input

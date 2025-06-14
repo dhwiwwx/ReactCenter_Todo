@@ -86,7 +86,9 @@ const ProjectListPage = () => {
   });
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [loading, setLoading] = useState(false);
-  const [users, setUsers] = useState<{ uid: string; email: string | null }[]>([]);
+  const [users, setUsers] = useState<{ uid: string; email: string | null }[]>(
+    []
+  );
   const [shareProjectId, setShareProjectId] = useState<string | null>(null);
 
   const navigate = useNavigate();
@@ -112,8 +114,7 @@ const ProjectListPage = () => {
     }
     const projectQuery = query(
       collection(db, "projects"),
-      where("memberIds", "array-contains", uid),
-      where("userId", "==", uid)
+      where("memberIds", "array-contains", uid)
     );
     const projectSnapshot = await getDocs(projectQuery);
 
@@ -351,9 +352,10 @@ const ProjectListPage = () => {
     setDraggedId(null);
   };
 
-  const filteredProjects = projects.filter((project) =>
-    project.name.toLowerCase().includes(search.toLowerCase()) ||
-    (project.description || "").toLowerCase().includes(search.toLowerCase())
+  const filteredProjects = projects.filter(
+    (project) =>
+      project.name.toLowerCase().includes(search.toLowerCase()) ||
+      (project.description || "").toLowerCase().includes(search.toLowerCase())
   );
 
   const pinnedProjects = filteredProjects.filter((p) => p.isPinned);
@@ -494,14 +496,13 @@ const ProjectListPage = () => {
                     )}
                   </PinButton>
                 )}
+                {!showTrash && project.userId === auth.currentUser?.uid && (
+                  <PinButton onClick={() => openShareModal(project.id)}>
+                    <UserPlus size={20} />
+                  </PinButton>
+                )}
                 {!showTrash &&
-                  project.userId === auth.currentUser?.uid && (
-                    <PinButton onClick={() => openShareModal(project.id)}>
-                      <UserPlus size={20} />
-                    </PinButton>
-                  )}
-                {!showTrash && (
-                  showArchive ? (
+                  (showArchive ? (
                     <PinButton onClick={() => unarchiveProject(project.id)}>
                       <ArchiveX size={20} />
                     </PinButton>
@@ -509,8 +510,7 @@ const ProjectListPage = () => {
                     <PinButton onClick={() => archiveProject(project.id)}>
                       <Archive size={20} />
                     </PinButton>
-                  )
-                )}
+                  ))}
                 {showTrash ? (
                   <>
                     <PinButton onClick={() => restoreProject(project.id)}>
@@ -598,14 +598,13 @@ const ProjectListPage = () => {
                     )}
                   </PinButton>
                 )}
+                {!showTrash && project.userId === auth.currentUser?.uid && (
+                  <PinButton onClick={() => openShareModal(project.id)}>
+                    <UserPlus size={20} />
+                  </PinButton>
+                )}
                 {!showTrash &&
-                  project.userId === auth.currentUser?.uid && (
-                    <PinButton onClick={() => openShareModal(project.id)}>
-                      <UserPlus size={20} />
-                    </PinButton>
-                  )}
-                {!showTrash && (
-                  showArchive ? (
+                  (showArchive ? (
                     <PinButton onClick={() => unarchiveProject(project.id)}>
                       <ArchiveX size={20} />
                     </PinButton>
@@ -613,8 +612,7 @@ const ProjectListPage = () => {
                     <PinButton onClick={() => archiveProject(project.id)}>
                       <Archive size={20} />
                     </PinButton>
-                  )
-                )}
+                  ))}
                 {showTrash ? (
                   <>
                     <PinButton onClick={() => restoreProject(project.id)}>
