@@ -54,6 +54,7 @@ import {
 interface Project {
   id: string;
   name: string;
+  userId?: string;
   description?: string;
   issueCount?: number;
   isPinned?: boolean;
@@ -91,7 +92,17 @@ const ProjectListPage = () => {
 
   const fetchProjects = async () => {
     setLoading(true);
-    const projectSnapshot = await getDocs(collection(db, "projects"));
+    const uid = auth.currentUser?.uid;
+    if (!uid) {
+      setProjects([]);
+      setLoading(false);
+      return;
+    }
+    const projectQuery = query(
+      collection(db, "projects"),
+      where("userId", "==", uid)
+    );
+    const projectSnapshot = await getDocs(projectQuery);
 
     const data = await Promise.all(
       projectSnapshot.docs.map(async (docSnap) => {
@@ -209,11 +220,14 @@ const ProjectListPage = () => {
       setErrorMessage("동일한 이름의 프로젝트가 이미 존재합니다.");
       return;
     }
+    const uid = auth.currentUser?.uid;
+    if (!uid) return;
     const maxOrder = projects.reduce(
       (max, p) => Math.max(max, p.order ?? 0),
       -1
     );
     await addDoc(collection(db, "projects"), {
+      userId: uid,
       name: newProjectName.trim(),
       description: newDescription.trim(),
       isPinned: false,
