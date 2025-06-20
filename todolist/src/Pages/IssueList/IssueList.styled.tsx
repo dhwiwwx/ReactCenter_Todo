@@ -6,7 +6,7 @@ export const Container = styled.div`
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background-color: #22254b;
+  background-color: ${({ theme }) => theme.colors.background};
 `;
 
 export const HeaderRow = styled.div`
@@ -33,10 +33,10 @@ export const SearchRow = styled.div`
 export const SearchInput = styled.input`
   padding: 12px 16px;
   border-radius: 8px;
-  border: none;
+  border: 1px solid ${({ theme }) => theme.colors.inputBorder};
   font-size: 14px;
   width: 300px;
-  background-color: #1f2240;
+  background-color: ${({ theme }) => theme.colors.inputBg};
   color: white;
 
   &::placeholder {
@@ -47,9 +47,9 @@ export const SearchInput = styled.input`
 export const SortSelect = styled.select`
   padding: 10px 14px;
   border-radius: 8px;
-  border: none;
+  border: 1px solid ${({ theme }) => theme.colors.inputBorder};
   font-size: 14px;
-  background-color: #1f2240;
+  background-color: ${({ theme }) => theme.colors.inputBg};
   color: white;
   cursor: pointer;
 `;
@@ -143,12 +143,19 @@ export const List = styled.div`
 `;
 
 export const Todo = styled.div`
-  background-color: #2c2e50;
+  background-color: ${({ theme }) => theme.colors.cardBg};
+  border: 1px solid ${({ theme }) => theme.colors.cardBorder};
   padding: 20px;
   border-radius: 12px;
   color: white;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+  }
 `;
 
 export const StatusBadge = styled.div`
