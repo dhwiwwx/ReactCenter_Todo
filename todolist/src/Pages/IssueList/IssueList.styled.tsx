@@ -90,6 +90,51 @@ export const OutlineButton = styled.button`
   }
 `;
 
+export const BackButton = styled.button`
+  padding: 8px 12px;
+  background-color: ${({ theme }) => theme.colors.secondary};
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  &:hover {
+    background-color: ${({ theme }) => theme.colors.secondaryHover};
+  }
+`;
+
+export const StyledLogoutButton = styled.button`
+  padding: 8px 12px;
+  background-color: ${({ theme }) => theme.colors.logoutBg};
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+
+  &:hover {
+    background-color: ${({ theme }) => theme.colors.logoutHover};
+  }
+`;
+
+export const StyledRegisterButton = styled.button`
+  padding: 8px 12px;
+  background-color: ${({ theme }) => theme.colors.primary};
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+
+  &:hover {
+    background-color: ${({ theme }) => theme.colors.primaryHover};
+  }
+`;
+
 export const List = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
