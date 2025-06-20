@@ -230,3 +230,7 @@ export const ScrollableListWrapper = styled.div`
   overflow-y: auto;
   padding: 10px 0;
 `;
+
+export const NoSelect = styled.div`
+  user-select: none;
+`;
