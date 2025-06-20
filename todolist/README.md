@@ -15,6 +15,10 @@ REACT_APP_FIREBASE_MESSAGING_SENDER_ID=YOUR_SENDER_ID
 REACT_APP_FIREBASE_APP_ID=YOUR_APP_ID
 REACT_APP_FIREBASE_MEASUREMENT_ID=YOUR_MEASUREMENT_ID
 ```
+## Installation
+
+Run `npm install` in this directory to install dependencies before starting the development server or running tests.
+
 
 
 ## Available Scripts
