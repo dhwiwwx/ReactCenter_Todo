@@ -158,16 +158,21 @@ export const Todo = styled.div`
   }
 `;
 
-export const StatusBadge = styled.div`
+export const StatusBadge = styled.div<{ status: string }>`
   position: absolute;
   top: 16px;
   right: 16px;
   font-size: 12px;
-  background-color: #64b5f6;
-  color: #0d47a1;
   padding: 4px 10px;
   border-radius: 10px;
   font-weight: bold;
+  color: white;
+  background-color: ${({ status }) =>
+    status === "완료"
+      ? "#10ac84"
+      : status === "진행 중"
+      ? "#54a0ff"
+      : "#576574"};
 `;
 
 export const CardWrapper = styled.div`
@@ -216,13 +221,36 @@ export const PriorityTag = styled.span<{ priority: string }>`
   color: white;
 `;
 
-export const DeadlineTag = styled.span`
+export const DeadlineTag = styled.span<{ status: string }>`
   font-size: 12px;
-  background-color: #ff9f43;
-  color: white;
   padding: 4px 8px;
   border-radius: 8px;
   align-self: flex-end;
+  color: white;
+  background-color: ${({ status }) =>
+    status.includes("마감 지남")
+      ? "#ff6b6b"
+      : status.includes("오늘 마감")
+      ? "#feca57"
+      : status.includes("임박")
+      ? "#ff9f43"
+      : "#48dbfb"};
+`;
+
+export const ProgressContainer = styled.div`
+  width: 100%;
+  background-color: ${({ theme }) => theme.colors.inputBorder};
+  height: 6px;
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 0 20px 10px;
+`;
+
+export const ProgressBar = styled.div<{ percent: number }>`
+  height: 100%;
+  background-color: ${({ theme }) => theme.colors.primary};
+  width: ${({ percent }) => percent}%;
+  transition: width 0.3s ease;
 `;
 
 export const ScrollableListWrapper = styled.div`
