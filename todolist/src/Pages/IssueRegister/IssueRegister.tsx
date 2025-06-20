@@ -7,14 +7,15 @@ import {
   Input,
   TextArea,
   Select,
-  DeadlineInput,
   ButtonGroup,
   RegisterButton,
   CancelButton,
 } from "./IssueRegister.styled";
-import { db } from "../../Firebase/firebase";
+import { db, auth } from "../../Firebase/firebase";
 import { collection, addDoc, Timestamp } from "firebase/firestore";
 import { useNavigate, useParams } from "react-router-dom";
+import DatePicker from "react-datepicker"; // ✅ DatePicker import
+import "react-datepicker/dist/react-datepicker.css";
 
 function IssueRegister() {
   const [title, setTitle] = useState("");
@@ -26,7 +27,7 @@ function IssueRegister() {
   const { projectId } = useParams<{ projectId: string }>();
 
   const [createdAtFormatted, setCreatedAtFormatted] = useState("");
-  const [deadline, setDeadline] = useState("");
+  const [deadline, setDeadline] = useState<Date | null>(null); // ✅ 타입 변경
 
   const navigate = useNavigate();
 
@@ -41,15 +42,19 @@ function IssueRegister() {
   };
 
   useEffect(() => {
+    const currentUser = auth.currentUser;
+    if (currentUser) {
+      setReporter(currentUser.displayName || currentUser.email || "");
+    }
     setCreatedAtFormatted(getFormattedDate());
   }, []);
 
   const validateForm = () => {
     if (!title.trim()) return "제목을 입력해주세요.";
-    if (!reporter.trim()) return "작성자 이름을 입력해주세요.";
+    if (!reporter.trim()) return "작성자 정보가 없습니다.";
     if (!description.trim()) return "상세 내용을 입력해주세요.";
     if (!assignee.trim()) return "담당자를 입력해주세요.";
-    if (!deadline.trim()) return "마감일을 선택해주세요.";
+    if (!deadline) return "마감일을 선택해주세요.";
     return null;
   };
 
@@ -69,7 +74,7 @@ function IssueRegister() {
         category,
         assignee,
         projectId,
-        deadline: deadline ? new Date(deadline).toISOString() : null,
+        deadline: deadline ? deadline.toISOString() : null, // ✅ 수정됨
         createdAt: Timestamp.now(),
         createdAtFormatted,
         status: "할 일",
@@ -90,36 +95,27 @@ function IssueRegister() {
           <Input
             placeholder="제목을 입력하세요"
             value={title}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setTitle(e.target.value)
-            }
+            onChange={(e) => setTitle(e.target.value)}
           />
           <Input
             placeholder="작성자 이름을 입력하세요"
             value={reporter}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setReporter(e.target.value)
-            }
+            readOnly
+            disabled
           />
           <Input
             placeholder="담당자 이름을 입력하세요"
             value={assignee}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setAssignee(e.target.value)
-            }
+            onChange={(e) => setAssignee(e.target.value)}
           />
           <TextArea
             placeholder="상세 내용을 입력하세요"
             value={description}
-            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-              setDescription(e.target.value)
-            }
+            onChange={(e) => setDescription(e.target.value)}
           />
           <Select
             value={priority}
-            onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-              setPriority(e.target.value)
-            }
+            onChange={(e) => setPriority(e.target.value)}
           >
             <option value="높음">높음</option>
             <option value="중간">중간</option>
@@ -127,9 +123,7 @@ function IssueRegister() {
           </Select>
           <Select
             value={category}
-            onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-              setCategory(e.target.value)
-            }
+            onChange={(e) => setCategory(e.target.value)}
           >
             <option value="버그">버그</option>
             <option value="기능 요청">기능 요청</option>
@@ -138,13 +132,17 @@ function IssueRegister() {
             <option value="기타">기타</option>
           </Select>
           <Input value={createdAtFormatted} disabled readOnly />
-          <DeadlineInput
-            value={deadline}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setDeadline(e.target.value)
-            }
-            placeholder="마감일을 선택하세요"
+
+          {/* ✅ 마감일 DatePicker 적용 */}
+          <DatePicker
+            selected={deadline}
+            onChange={(date: Date | null) => setDeadline(date)}
+            placeholderText="마감일을 선택하세요"
+            dateFormat="yyyy-MM-dd"
+            className="datepicker-input"
+            minDate={new Date()}
           />
+
           <ButtonGroup>
             <CancelButton
               onClick={() => navigate(`/projects/${projectId}/issues`)}

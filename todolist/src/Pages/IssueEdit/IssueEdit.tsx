@@ -8,7 +8,7 @@ import {
   Input,
   TextArea,
   Select,
-  DeadlineInput,
+  StyledDatePicker,
   ButtonGroup,
   RegisterButton,
   CancelButton,
@@ -28,7 +28,7 @@ function IssueEdit() {
   const [description, setDescription] = useState("");
   const [priority, setPriority] = useState("중간");
   const [category, setCategory] = useState("버그");
-  const [deadline, setDeadline] = useState("");
+  const [deadline, setDeadline] = useState<Date | null>(null); // ✅ Date 타입
   const [status, setStatus] = useState("할 일");
   const [projectId, setProjectId] = useState<string>("");
 
@@ -40,9 +40,9 @@ function IssueEdit() {
       setDescription(data.description || "");
       setPriority(data.priority || "중간");
       setCategory(data.category || "버그");
-      setDeadline(data.deadline ? data.deadline.substring(0, 10) : "");
+      setDeadline(data.deadline ? new Date(data.deadline) : null); // ✅ 날짜 변환
       setStatus(data.status || "할 일");
-      setProjectId(data.projectId || ""); // ✅ projectId 저장
+      setProjectId(data.projectId || "");
     };
 
     if (passedIssue) {
@@ -86,7 +86,7 @@ function IssueEdit() {
         priority,
         category,
         assignee,
-        deadline: deadline ? new Date(deadline).toISOString() : null,
+        deadline: deadline ? deadline.toISOString() : null, // ✅ 저장 포맷
         status,
       });
 
@@ -106,37 +106,27 @@ function IssueEdit() {
           <Input
             placeholder="제목"
             value={title}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setTitle(e.target.value)
-            }
+            onChange={(e) => setTitle(e.target.value)}
           />
           <Input
             placeholder="작성자"
             value={reporter}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setReporter(e.target.value)
-            }
+            onChange={(e) => setReporter(e.target.value)}
           />
           <Input
             placeholder="담당자"
             value={assignee}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setAssignee(e.target.value)
-            }
+            onChange={(e) => setAssignee(e.target.value)}
           />
           <TextArea
             placeholder="상세 내용"
             value={description}
-            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-              setDescription(e.target.value)
-            }
+            onChange={(e) => setDescription(e.target.value)}
           />
 
           <Select
             value={priority}
-            onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-              setPriority(e.target.value)
-            }
+            onChange={(e) => setPriority(e.target.value)}
           >
             <option value="높음">높음</option>
             <option value="중간">중간</option>
@@ -145,9 +135,7 @@ function IssueEdit() {
 
           <Select
             value={category}
-            onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-              setCategory(e.target.value)
-            }
+            onChange={(e) => setCategory(e.target.value)}
           >
             <option value="버그">버그</option>
             <option value="기능 요청">기능 요청</option>
@@ -156,20 +144,16 @@ function IssueEdit() {
             <option value="기타">기타</option>
           </Select>
 
-          <DeadlineInput
-            type="date"
-            value={deadline}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setDeadline(e.target.value)
-            }
+          {/* ✅ DatePicker 적용 */}
+          <StyledDatePicker
+            selected={deadline}
+            onChange={(date: Date | null) => setDeadline(date)}
+            placeholderText="마감일을 선택하세요"
+            dateFormat="yyyy-MM-dd"
+            minDate={new Date()} // 🔒 오늘 이전은 비활성화
           />
 
-          <Select
-            value={status}
-            onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-              setStatus(e.target.value)
-            }
-          >
+          <Select value={status} onChange={(e) => setStatus(e.target.value)}>
             <option value="할 일">할 일</option>
             <option value="진행 중">진행 중</option>
             <option value="완료">완료</option>

@@ -1,14 +1,33 @@
-// IssueRegister.styled.js
+// IssueRegister.styled.ts
 import styled from "styled-components";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css"; // 반드시 import
 
 const baseFont = `
   font-family: 'Noto Sans KR', sans-serif;
   font-size: 16px;
 `;
 
-// ─────────────────────────────────────────────────────────────────────────
-// 1) 전체 레이아웃
-// ─────────────────────────────────────────────────────────────────────────
+export const StyledDatePicker = styled(DatePicker)`
+  width: 100%;
+  height: 48px;
+  padding: 12px 16px;
+  font-size: 16px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  color: #222;
+  background-color: white;
+  outline: none;
+
+  &::placeholder {
+    color: #aaa;
+  }
+
+  &:focus {
+    border-color: #6c5ce7;
+    box-shadow: 0 0 0 2px rgba(108, 92, 231, 0.2);
+  }
+`;
 
 export const RegisterContainer = styled.div`
   display: flex;
@@ -16,12 +35,12 @@ export const RegisterContainer = styled.div`
   min-height: 100vh;
   padding-top: 60px;
   align-items: center;
-  background-color: #22254b; /* 어두운 배경 */
+  background-color: #22254b;
   color: #fff;
 `;
 
 export const RegisterBox = styled.div`
-  background-color: #373b69;   /* 짙은 보라/남색 */
+  background-color: #373b69;
   padding: 32px;
   border-radius: 16px;
   box-shadow: 19px 17px 2px 1px rgba(0, 0, 0, 0.2);
@@ -37,41 +56,34 @@ export const RegisterTitle = styled.h1`
   user-select: none;
 `;
 
-// ─────────────────────────────────────────────────────────────────────────
-// 2) 폼 내부 항목
-// ─────────────────────────────────────────────────────────────────────────
-
 export const Form = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px; // 기존 16px → 20px
 `;
 
-// 일반 텍스트 입력
 export const Input = styled.input`
   ${baseFont}
-  height: 44px;
-  padding: 10px 14px;
+  height: 48px;
+  padding: 12px 16px;
   font-size: 16px;
-  border-radius: 6px;
-  border: none;
-  outline: none;
-  
-  /* 기본값: 흰색 바탕, 어두운 텍스트 */
+  border-radius: 8px;
+  border: 1px solid #ccc;
   background-color: #ffffff;
   color: #222;
+  outline: none;
 
   &::placeholder {
     color: #aaa;
   }
 
   &:disabled {
-    background-color: #e9ecef; /* 생성일 표시용 배경 */
-    color: #333;
+    background-color: #e9ecef;
+    color: #555;
+    cursor: not-allowed;
   }
 `;
 
-// 멀티라인 텍스트
 export const TextArea = styled.textarea`
   ${baseFont}
   height: 120px;
@@ -89,7 +101,6 @@ export const TextArea = styled.textarea`
   }
 `;
 
-// 셀렉트 박스
 export const Select = styled.select`
   height: 44px;
   padding: 10px 14px;
@@ -101,39 +112,10 @@ export const Select = styled.select`
   color: #222;
   cursor: pointer;
 
-  /* 아래 화살표 아이콘을 흰색 배경에 검은색으로 보이게끔 */
   background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='16'%20height='16'%3E%3Cpath%20fill='%23333'%20d='M4%206l4%204%204-4z'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 12px center;
   appearance: none;
-`;
-
-// ‘마감일’ 입력을 위한 <input type="date">
-export const DeadlineInput = styled.input.attrs({ type: "date" })`
-  ${baseFont}
-  height: 48px;
-  padding: 12px 16px;
-  font-size: 16px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  background-color: #fff;
-  color: #222;
-  outline: none;
-
-  &::placeholder {
-    color: #aaa;
-  }
-
-  &:focus {
-    border-color: #6c5ce7;
-    background-color: #f0f0ff;
-  }
-
-  &::-webkit-calendar-picker-indicator {
-    display: inline-block;    /* 명시적으로 표시 */
-    cursor: pointer;
-    margin-left: 4px;
-  }
 `;
 
 export const ButtonGroup = styled.div`
@@ -164,36 +146,24 @@ const buttonStyle = `
 
 export const RegisterButton = styled.button`
   ${buttonStyle}
-  background-color: #4caf50; /* 초록 */
+  background-color: #4caf50;
   color: #fff;
 `;
 
 export const CancelButton = styled.button`
   ${buttonStyle}
-  background-color: #ff6b6b; /* 빨강 */
+  background-color: #ff6b6b;
   color: #fff;
 `;
 
 export const ReadOnlyInput = styled.input`
-  height: 44px;
-  padding: 10px 14px;
+  height: 48px;
+  padding: 12px 16px;
   font-size: 16px;
-  border-radius: 6px;
-  border: none;
-  background-color: #e9ecef;
-  color: #333;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  background-color: #f5f5f5;
+  color: #888;
   cursor: not-allowed;
   width: 100%;
-`;
-
-// 파일 업로드 버튼 스타일
-export const FileUploadLabel = styled.label`
-  background-color: #6c5ce7;
-  color: #fff;
-  padding: 10px 16px;
-  border-radius: 6px;
-  font-size: 14px;
-  cursor: pointer;
-  white-space: nowrap;
-  user-select: none;
 `;
