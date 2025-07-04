@@ -7,9 +7,10 @@ import {
   browserLocalPersistence,
   browserSessionPersistence,
   GoogleAuthProvider,
+  sendEmailVerification,
 } from "firebase/auth";
 import { auth, db } from "../../Firebase/firebase";
-import { setDoc, doc, getDoc, collection, getDocs } from "firebase/firestore";
+import { setDoc, doc, getDoc } from "firebase/firestore";
 import {
   Container,
   LoginBox,
@@ -22,7 +23,6 @@ import {
   TogglePassword,
   PasswordWrapper,
   CheckboxLabel,
-  AccountSelect,
   SNSButton,
   SubButtonRow,
   ShakeWrapper,
@@ -39,15 +39,47 @@ function Login() {
   const [keepLoggedIn, setKeepLoggedIn] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [accountList, setAccountList] = useState<string[]>([]);
   const [shouldShake, setShouldShake] = useState(false);
+  const [capsLockOn, setCapsLockOn] = useState(false);
   const emailRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
 
+  const [failCount, setFailCount] = useState<number>(0);
+  const [lockUntil, setLockUntil] = useState<number | null>(null);
+
   useEffect(() => {
     emailRef.current?.focus();
-  }, []);
+
+    const savedLockUntil = localStorage.getItem("lockUntil");
+    if (savedLockUntil) {
+      setLockUntil(Number(savedLockUntil));
+    }
+
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (user) {
+        navigate("/projects");
+      }
+    });
+
+    return unsubscribe;
+  }, [navigate]);
+
+  useEffect(() => {
+    if (lockUntil) {
+      localStorage.setItem("lockUntil", lockUntil.toString());
+      const timer = setInterval(() => {
+        if (lockUntil <= Date.now()) {
+          setLockUntil(null);
+          setFailCount(0);
+          clearInterval(timer);
+        }
+      }, 1000);
+      return () => clearInterval(timer);
+    } else {
+      localStorage.removeItem("lockUntil");
+    }
+  }, [lockUntil]);
 
   const triggerShake = () => {
     setShouldShake(true);
@@ -61,30 +93,34 @@ function Login() {
   };
 
   const handleLogin = async () => {
+    if (lockUntil && lockUntil > Date.now()) {
+      const secondsLeft = Math.ceil((lockUntil - Date.now()) / 1000);
+      showError(`잠금 상태입니다. ${secondsLeft}초 후 다시 시도해주세요.`);
+      return;
+    }
+
     if (!email || !password) {
       showError("이메일과 비밀번호를 입력해주세요.");
-      return;
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      showError("유효한 이메일 형식을 입력해주세요.");
-      return;
-    }
-
-    if (password.length < 6) {
-      showError("비밀번호는 최소 6자 이상이어야 합니다.");
       return;
     }
 
     try {
       setErrorMessage("");
       setLoading(true);
+
       await setPersistence(
         auth,
         keepLoggedIn ? browserLocalPersistence : browserSessionPersistence
       );
+
       const cred = await signInWithEmailAndPassword(auth, email, password);
+
+      if (!cred.user.emailVerified) {
+        showError("이메일 인증 후 로그인 가능합니다.");
+        await sendEmailVerification(cred.user);
+        return;
+      }
+
       const userDoc = await getDoc(doc(db, "users", cred.user.uid));
       if (!userDoc.exists()) {
         await setDoc(doc(db, "users", cred.user.uid), {
@@ -92,23 +128,54 @@ function Login() {
           email: cred.user.email,
         });
       }
-      navigate("/projects");
-    } catch (error: any) {
-      switch (error.code) {
-        case "auth/user-not-found":
-          showError("존재하지 않는 이메일입니다.");
-          break;
-        case "auth/wrong-password":
-          showError("비밀번호가 일치하지 않습니다.");
-          break;
-        case "auth/invalid-email":
-          showError("잘못된 이메일 형식입니다.");
-          break;
-        case "auth/too-many-requests":
-          showError("잠시 후 다시 시도해주세요.");
-          break;
-        default:
-          showError("로그인 실패");
+
+      console.log(`로그인 알림: ${cred.user.email} 로그인`);
+      toast.success(`환영합니다, ${cred.user.email}님!`, {
+        position: "top-center",
+        autoClose: 2500,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: false,
+        theme: "colored",
+      });
+
+      setFailCount(0);
+      setLockUntil(null);
+
+      setTimeout(() => {
+        setLoading(false); // 이동 직전에 로딩 풀기
+        navigate("/projects");
+      }, 2000);
+    } catch (error: unknown) {
+      console.error(error);
+      setFailCount((prev) => prev + 1);
+
+      if (failCount + 1 >= 5) {
+        const lockTime = Date.now() + 60 * 1000;
+        setLockUntil(lockTime);
+        showError("5회 이상 실패하여 1분간 로그인 잠금됩니다.");
+      } else {
+        if (error instanceof Error && "code" in error) {
+          switch ((error as any).code) {
+            case "auth/user-not-found":
+              showError("존재하지 않는 이메일입니다.");
+              break;
+            case "auth/wrong-password":
+              showError("비밀번호가 일치하지 않습니다.");
+              break;
+            case "auth/invalid-email":
+              showError("잘못된 이메일 형식입니다.");
+              break;
+            case "auth/too-many-requests":
+              showError("잠시 후 다시 시도해주세요.");
+              break;
+            default:
+              showError("로그인 실패");
+          }
+        } else {
+          showError("알 수 없는 에러 발생");
+        }
       }
     } finally {
       setLoading(false);
@@ -119,10 +186,15 @@ function Login() {
     e: React.KeyboardEvent<HTMLInputElement>,
     next?: () => void
   ) => {
+    setCapsLockOn(e.getModifierState("CapsLock"));
     if (e.key === "Enter") {
       if (next) next();
       else handleLogin();
     }
+  };
+
+  const handleKeyUp = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    setCapsLockOn(e.getModifierState("CapsLock"));
   };
 
   const handleSNSLogin = async () => {
@@ -130,6 +202,7 @@ function Login() {
       setErrorMessage("");
       const provider = new GoogleAuthProvider();
       const cred = await signInWithPopup(auth, provider);
+
       const userDoc = await getDoc(doc(db, "users", cred.user.uid));
       if (!userDoc.exists()) {
         await setDoc(doc(db, "users", cred.user.uid), {
@@ -137,8 +210,10 @@ function Login() {
           email: cred.user.email,
         });
       }
+
       navigate("/projects");
     } catch (err) {
+      console.error(err);
       showError("SNS 로그인 실패");
     }
   };
@@ -161,6 +236,7 @@ function Login() {
             onKeyDown={(e) =>
               handleKeyDown(e, () => passwordRef.current?.focus())
             }
+            onKeyUp={handleKeyUp}
             autoComplete="email"
           />
 
@@ -172,6 +248,7 @@ function Login() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               onKeyDown={handleKeyDown}
+              onKeyUp={handleKeyUp}
               autoComplete="current-password"
             />
             <TogglePassword onClick={() => setShowPassword((prev) => !prev)}>
@@ -179,6 +256,12 @@ function Login() {
             </TogglePassword>
           </PasswordWrapper>
         </ShakeWrapper>
+
+        {capsLockOn && (
+          <div style={{ color: "orange", marginBottom: "10px" }}>
+            CapsLock이 켜져 있습니다.
+          </div>
+        )}
 
         <CheckboxLabel>
           <input
@@ -188,8 +271,6 @@ function Login() {
           />
           로그인 유지하기
         </CheckboxLabel>
-
-        {/* 에러 메시지 텍스트 제거됨. 토스트로만 표시됨 */}
 
         <Button onClick={handleLogin} disabled={loading}>
           {loading ? <Loader2 size={20} className="animate-spin" /> : "로그인"}
@@ -210,12 +291,12 @@ function Login() {
 
       <ToastContainer
         position="top-center"
-        autoClose={2000}
-        hideProgressBar
+        autoClose={2500}
+        hideProgressBar={false}
         closeOnClick
         pauseOnHover
-        draggable
-        theme="dark"
+        draggable={false}
+        theme="colored"
       />
     </Container>
   );

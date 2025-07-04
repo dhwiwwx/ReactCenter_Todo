@@ -8,7 +8,6 @@ import {
   Input,
   TextArea,
   Select,
-  StyledDatePicker,
   ButtonGroup,
   RegisterButton,
   CancelButton,
@@ -143,15 +142,6 @@ function IssueEdit() {
             <option value="성능 개선">성능 개선</option>
             <option value="기타">기타</option>
           </Select>
-
-          {/* ✅ DatePicker 적용 */}
-          <StyledDatePicker
-            selected={deadline}
-            onChange={(date: Date | null) => setDeadline(date)}
-            placeholderText="마감일을 선택하세요"
-            dateFormat="yyyy-MM-dd"
-            minDate={new Date()} // 🔒 오늘 이전은 비활성화
-          />
 
           <Select value={status} onChange={(e) => setStatus(e.target.value)}>
             <option value="할 일">할 일</option>

@@ -1,5 +1,3 @@
-// ✅ IssueList.styled.ts (스타일 통합 기준 적용)
-
 import styled from "styled-components";
 
 export const Container = styled.div`
@@ -9,17 +7,21 @@ export const Container = styled.div`
   background-color: ${({ theme }) => theme.colors.background};
 `;
 
-export const HeaderRow = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 20px 30px;
-`;
-
 export const Title = styled.h1`
   font-size: 32px;
   color: #fff;
   font-weight: 300;
+  text-align: center;
+  margin-top: 30px;
+`;
+
+export const TopButtonRow = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 30px;
+  margin-top: 12px;
+  margin-bottom: 20px;
 `;
 
 export const SearchRow = styled.div`
@@ -67,6 +69,16 @@ export const GreenButton = styled.button`
   &:hover {
     background-color: #40c057;
   }
+`;
+
+export const ListBackground = styled.div`
+  background-color: #2d2f55;
+  border-radius: 12px;
+  margin: 20px auto;
+  padding: 20px;
+  width: 90%;
+  max-width: 1000px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
 `;
 
 export const RedButton = styled(GreenButton)`
@@ -136,37 +148,36 @@ export const StyledRegisterButton = styled.button`
 `;
 
 export const List = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 20px;
-  padding: 20px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px 0;
+  max-width: 900px;
+  margin: 0 auto;
 `;
 
 export const Todo = styled.div`
   background-color: ${({ theme }) => theme.colors.cardBg};
   border: 1px solid ${({ theme }) => theme.colors.cardBorder};
-  padding: 20px;
+  padding: 20px 24px;
   border-radius: 12px;
   color: white;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
   }
 `;
 
 export const StatusBadge = styled.div<{ status: string }>`
-  position: absolute;
-  top: 16px;
-  right: 16px;
   font-size: 12px;
   padding: 4px 10px;
   border-radius: 10px;
   font-weight: bold;
   color: white;
+  align-self: flex-end;
   background-color: ${({ status }) =>
     status === "완료"
       ? "#10ac84"
@@ -179,7 +190,6 @@ export const CardWrapper = styled.div`
   display: flex;
   flex-direction: column;
   gap: 8px;
-  position: relative;
 `;
 
 export const CardTitle = styled.h3`
@@ -225,8 +235,8 @@ export const DeadlineTag = styled.span<{ status: string }>`
   font-size: 12px;
   padding: 4px 8px;
   border-radius: 8px;
-  align-self: flex-end;
   color: white;
+  align-self: flex-start;
   background-color: ${({ status }) =>
     status.includes("마감 지남")
       ? "#ff6b6b"
@@ -261,4 +271,43 @@ export const ScrollableListWrapper = styled.div`
 
 export const NoSelect = styled.div`
   user-select: none;
+`;
+
+export const Tag = styled.div`
+  background-color: #5c7cfa;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  font-size: 12px;
+  margin-top: 6px;
+  display: inline-block;
+`;
+
+export const Initial = styled.div`
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: #6c5ce7;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+  margin-left: 6px;
+  cursor: default;
+`;
+
+export const CommentCount = styled.div`
+  font-size: 12px;
+  color: #999;
+  margin-left: auto;
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+
+  &::before {
+    content: "💬";
+    margin-right: 4px;
+  }
 `;

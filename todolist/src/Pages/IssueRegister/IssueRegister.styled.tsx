@@ -1,33 +1,5 @@
 // IssueRegister.styled.ts
 import styled from "styled-components";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css"; // 반드시 import
-
-const baseFont = `
-  font-family: 'Noto Sans KR', sans-serif;
-  font-size: 16px;
-`;
-
-export const StyledDatePicker = styled(DatePicker)`
-  width: 100%;
-  height: 48px;
-  padding: 12px 16px;
-  font-size: 16px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  color: #222;
-  background-color: white;
-  outline: none;
-
-  &::placeholder {
-    color: #aaa;
-  }
-
-  &:focus {
-    border-color: #6c5ce7;
-    box-shadow: 0 0 0 2px rgba(108, 92, 231, 0.2);
-  }
-`;
 
 export const RegisterContainer = styled.div`
   display: flex;
@@ -43,58 +15,49 @@ export const RegisterBox = styled.div`
   background-color: #373b69;
   padding: 32px;
   border-radius: 16px;
-  box-shadow: 19px 17px 2px 1px rgba(0, 0, 0, 0.2);
-  width: 80%;
-  max-width: 720px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  width: 90%;
+  max-width: 640px;
 `;
 
 export const RegisterTitle = styled.h1`
   margin-bottom: 28px;
   font-size: 28px;
-  font-weight: 400;
+  font-weight: 500;
   text-align: center;
-  user-select: none;
 `;
 
 export const Form = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 20px; // 기존 16px → 20px
+  gap: 18px;
 `;
 
 export const Input = styled.input`
-  ${baseFont}
   height: 48px;
   padding: 12px 16px;
-  font-size: 16px;
+  font-size: 15px;
   border-radius: 8px;
-  border: 1px solid #ccc;
-  background-color: #ffffff;
+  border: none;
+  background-color: #fff;
   color: #222;
   outline: none;
 
   &::placeholder {
     color: #aaa;
   }
-
-  &:disabled {
-    background-color: #e9ecef;
-    color: #555;
-    cursor: not-allowed;
-  }
 `;
 
 export const TextArea = styled.textarea`
-  ${baseFont}
   height: 120px;
   padding: 12px 14px;
-  font-size: 16px;
-  border-radius: 6px;
+  font-size: 15px;
+  border-radius: 8px;
   border: none;
+  background-color: #fff;
+  color: #222;
   resize: none;
   outline: none;
-  background-color: #ffffff;
-  color: #222;
 
   &::placeholder {
     color: #aaa;
@@ -104,66 +67,123 @@ export const TextArea = styled.textarea`
 export const Select = styled.select`
   height: 44px;
   padding: 10px 14px;
-  font-size: 16px;
-  border-radius: 6px;
+  font-size: 15px;
+  border-radius: 8px;
   border: none;
-  outline: none;
-  background-color: #ffffff;
+  background-color: #fff;
   color: #222;
   cursor: pointer;
-
-  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='16'%20height='16'%3E%3Cpath%20fill='%23333'%20d='M4%206l4%204%204-4z'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 12px center;
-  appearance: none;
+  outline: none;
 `;
 
 export const ButtonGroup = styled.div`
   display: flex;
   justify-content: flex-end;
   gap: 12px;
-  margin-top: 20px;
-`;
-
-const buttonStyle = `
-  width: 100px;
-  height: 40px;
-  border: none;
-  border-radius: 6px;
-  font-size: 15px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: opacity 0.2s ease, transform 0.1s ease;
-
-  &:hover {
-    opacity: 0.9;
-    transform: translateY(-2px);
-  }
-  &:active {
-    transform: translateY(0);
-  }
+  margin-top: 12px;
 `;
 
 export const RegisterButton = styled.button`
-  ${buttonStyle}
+  width: 80px;
+  height: 38px;
   background-color: #4caf50;
   color: #fff;
+  font-weight: 600;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  transition: 0.2s ease;
+
+  &:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+  }
 `;
 
 export const CancelButton = styled.button`
-  ${buttonStyle}
+  width: 80px;
+  height: 38px;
   background-color: #ff6b6b;
   color: #fff;
+  font-weight: 600;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  transition: 0.2s ease;
+
+  &:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+  }
 `;
 
-export const ReadOnlyInput = styled.input`
-  height: 48px;
-  padding: 12px 16px;
-  font-size: 16px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  background-color: #f5f5f5;
-  color: #888;
-  cursor: not-allowed;
-  width: 100%;
+export const TagWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 `;
+
+export const TagInput = styled.input`
+  padding: 10px 14px;
+  border: none;
+  border-radius: 8px;
+  background-color: #fff;
+  color: #333;
+  font-size: 14px;
+  outline: none;
+
+  &::placeholder {
+    color: #aaa;
+  }
+`;
+
+export const TagList = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+`;
+
+export const Tag = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background-color: #5c7cfa;
+  color: #fff;
+  padding: 6px 10px;
+  font-size: 13px;
+  border-radius: 9999px;
+  transition: background-color 0.2s;
+
+  span {
+    cursor: pointer;
+    font-weight: bold;
+    &:hover {
+      color: #ff6b6b;
+    }
+  }
+`;
+
+export const SuggestionBox = styled.ul`
+  background-color: white;
+  border-radius: 8px;
+  margin-top: 4px;
+  padding: 4px 0;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  list-style: none;
+  color: #222;
+  max-height: 140px;
+  overflow-y: auto;
+`;
+
+export const SuggestionItem = styled.li`
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: #f1f3f5;
+  }
+`;
+
+export { Select as StyledSelect };
