@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import {
   createUserWithEmailAndPassword,
   fetchSignInMethodsForEmail,
+  sendEmailVerification,
 } from "firebase/auth";
 import { auth, db } from "../../Firebase/firebase";
 import { setDoc, doc } from "firebase/firestore";
@@ -20,6 +21,8 @@ import {
 } from "./Signup.styled";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function Signup() {
   const [email, setEmail] = useState("");
@@ -43,7 +46,7 @@ function Signup() {
 
   const navigate = useNavigate();
 
-  // ✅ 이메일 유효성 + 중복 확인
+  // 이메일 형식 + 중복 확인
   useEffect(() => {
     const delay = setTimeout(async () => {
       const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -75,13 +78,15 @@ function Signup() {
     return () => clearTimeout(delay);
   }, [email]);
 
-  // ✅ 비밀번호 보안성 체크
+  // 비밀번호 강도 체크
   useEffect(() => {
     if (!password) {
       setPasswordStrength("");
     } else if (
       password.length >= 10 &&
       /[A-Z]/.test(password) &&
+      /[a-z]/.test(password) &&
+      /[0-9]/.test(password) &&
       /[\W]/.test(password)
     ) {
       setPasswordStrength("강함");
@@ -92,7 +97,6 @@ function Signup() {
     }
   }, [password]);
 
-  // ✅ 회원가입 처리
   const handleSignup = async () => {
     if (!emailValid || !isEmailAvailable) {
       setShakeEmail(true);
@@ -105,17 +109,39 @@ function Signup() {
       setTimeout(() => setShakeConfirm(false), 500);
       return;
     }
+    if (
+      !/[A-Z]/.test(password) ||
+      !/[a-z]/.test(password) ||
+      !/[0-9]/.test(password) ||
+      password.length < 8
+    ) {
+      toast.error(
+        "비밀번호는 8자 이상, 대문자, 소문자, 숫자를 포함해야 합니다."
+      );
+      return;
+    }
 
     try {
       const cred = await createUserWithEmailAndPassword(auth, email, password);
+
+      // 이메일 인증 메일 발송
+      await sendEmailVerification(cred.user);
+
+      // Firestore에 사용자 정보 저장
       await setDoc(doc(db, "users", cred.user.uid), {
         uid: cred.user.uid,
         email: cred.user.email,
       });
-      alert("회원가입 성공!");
-      navigate("/");
-    } catch {
-      alert("회원가입 실패");
+
+      toast.success("회원가입 성공! 이메일 인증 후 로그인하세요.");
+
+      // 🔑 바로 로그아웃 처리
+      await auth.signOut();
+
+      setTimeout(() => navigate("/"), 2000);
+    } catch (error: any) {
+      console.error(error);
+      toast.error("회원가입 실패. 다시 시도해주세요.");
     }
   };
 
@@ -200,6 +226,16 @@ function Signup() {
           이미 계정이 있으신가요? 로그인
         </LinkButton>
       </SignupBox>
+
+      <ToastContainer
+        position="top-center"
+        autoClose={2500}
+        hideProgressBar={false}
+        closeOnClick
+        pauseOnHover
+        draggable={false}
+        theme="colored"
+      />
     </Container>
   );
 }

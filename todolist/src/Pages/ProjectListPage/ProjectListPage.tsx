@@ -380,6 +380,9 @@ const ProjectListPage = () => {
           <ViewToggleButton onClick={toggleViewMode}>
             {viewMode === "list" ? "카드형" : "리스트형"}
           </ViewToggleButton>
+          <ViewToggleButton onClick={() => navigate("/mypage")}>
+            마이페이지
+          </ViewToggleButton>
           <StyledLogoutButton onClick={handleSignOut}>
             로그아웃
           </StyledLogoutButton>

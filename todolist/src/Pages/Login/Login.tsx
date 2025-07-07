@@ -58,6 +58,11 @@ function Login() {
 
     const unsubscribe = auth.onAuthStateChanged((user) => {
       if (user) {
+        if (!user.emailVerified) {
+          toast.error("이메일 인증 후 이용 가능합니다.");
+          auth.signOut(); // 인증 안 됐으면 로그아웃
+          return;
+        }
         navigate("/projects");
       }
     });
@@ -116,8 +121,12 @@ function Login() {
       const cred = await signInWithEmailAndPassword(auth, email, password);
 
       if (!cred.user.emailVerified) {
-        showError("이메일 인증 후 로그인 가능합니다.");
         await sendEmailVerification(cred.user);
+        showError(
+          "이메일 인증 후 로그인해주세요. 인증 메일을 다시 보냈습니다."
+        );
+
+        await auth.signOut(); // 인증 안 된 경우 강제 로그아웃
         return;
       }
 
