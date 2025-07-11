@@ -238,3 +238,10 @@ export const LogoTitleWrap = styled.div`
   gap: 16px;
   margin-bottom: 32px;
 `;
+
+export const Message = styled.p<{ success: boolean }>`
+  color: ${(props) => (props.success ? "#4fa94d" : "#ff6b6b")};
+  font-size: 13px;
+  margin-bottom: 12px;
+  margin-top: -6px;
+`;

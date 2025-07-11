@@ -246,6 +246,11 @@ export const HeaderRow = styled.div`
   margin-bottom: 24px;
 `;
 
+export const HeaderActions = styled.div`
+  display: flex;
+  gap: 8px;
+`;
+
 export const StyledLogoutButton = styled.button`
   padding: 10px 14px;
   background-color: ${({ theme }) => theme.colors.logoutBg};
