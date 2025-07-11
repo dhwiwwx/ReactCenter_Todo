@@ -11,6 +11,10 @@ import {
   ButtonGroup,
   RegisterButton,
   CancelButton,
+  TagList,
+  Tag,
+  TagInput,
+  TagWrapper,
 } from "../IssueRegister/IssueRegister.styled";
 import { db } from "../../Firebase/firebase";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
@@ -30,6 +34,8 @@ function IssueEdit() {
   const [deadline, setDeadline] = useState<Date | null>(null); // ✅ Date 타입
   const [status, setStatus] = useState("할 일");
   const [projectId, setProjectId] = useState<string>("");
+  const [tags, setTags] = useState<string[]>([]);
+  const [tagInput, setTagInput] = useState<string>("");
 
   useEffect(() => {
     const applyData = (data: any) => {
@@ -42,6 +48,7 @@ function IssueEdit() {
       setDeadline(data.deadline ? new Date(data.deadline) : null); // ✅ 날짜 변환
       setStatus(data.status || "할 일");
       setProjectId(data.projectId || "");
+      setTags(data.tags || []);
     };
 
     if (passedIssue) {
@@ -69,6 +76,16 @@ function IssueEdit() {
     return null;
   };
 
+  const handleTagInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "," || e.key === "Enter") {
+      e.preventDefault();
+      if (tagInput.trim()) {
+        setTags([...tags, tagInput.trim()]);
+        setTagInput("");
+      }
+    }
+  };
+
   const handleUpdate = async () => {
     const errorMsg = validateForm();
     if (errorMsg) {
@@ -85,6 +102,7 @@ function IssueEdit() {
         priority,
         category,
         assignee,
+        tags,
         deadline: deadline ? deadline.toISOString() : null, // ✅ 저장 포맷
         status,
       });
@@ -148,6 +166,31 @@ function IssueEdit() {
             <option value="진행 중">진행 중</option>
             <option value="완료">완료</option>
           </Select>
+
+          <TagWrapper>
+            <TagList>
+              {tags.map((tag, idx) => (
+                <Tag key={idx}>
+                  #{tag}
+                  <span
+                    onClick={() => {
+                      const newTags = [...tags];
+                      newTags.splice(idx, 1);
+                      setTags(newTags);
+                    }}
+                  >
+                    ×
+                  </span>
+                </Tag>
+              ))}
+            </TagList>
+            <TagInput
+              placeholder="태그를 입력 후 쉼표(,) 또는 엔터"
+              value={tagInput}
+              onChange={(e) => setTagInput(e.target.value)}
+              onKeyDown={handleTagInputKeyDown}
+            />
+          </TagWrapper>
 
           <ButtonGroup>
             <CancelButton
