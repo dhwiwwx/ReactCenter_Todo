@@ -169,7 +169,7 @@ function IssueList() {
       : (issues.filter((i) => i.status === "완료").length / issues.length) *
         100;
 
-  const allTags = [...new Set(issues.flatMap((i) => i.tags || []))];
+  const allTags = Array.from(new Set(issues.flatMap((i) => i.tags || [])));
 
   return (
     <Container>

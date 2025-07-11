@@ -44,6 +44,7 @@ import { signOut } from "firebase/auth";
 import {
   collection,
   getDocs,
+  getDoc,
   addDoc,
   updateDoc,
   deleteDoc,
@@ -69,6 +70,42 @@ interface Project {
   completionRate?: number;
 }
 
+const ProfileAvatar = ({ onClick }: { onClick: () => void }) => {
+  const [profileImage, setProfileImage] = useState<string>("");
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const user = auth.currentUser;
+      if (!user) return;
+
+      try {
+        const docSnap = await getDoc(doc(db, "users", user.uid));
+        if (docSnap.exists()) {
+          setProfileImage(docSnap.data().profileImage || "");
+        }
+      } catch (error) {
+        console.error("프로필 이미지 로드 실패:", error);
+      }
+    };
+    fetchProfile();
+  }, []);
+
+  return (
+    <img
+      src={profileImage || "https://placekitten.com/200/200"}
+      alt="프로필"
+      onClick={onClick}
+      style={{
+        width: 36,
+        height: 36,
+        borderRadius: "50%",
+        cursor: "pointer",
+        objectFit: "cover",
+      }}
+    />
+  );
+};
+
 const ProjectListPage = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [newProjectName, setNewProjectName] = useState("");
@@ -81,6 +118,9 @@ const ProjectListPage = () => {
   const [search, setSearch] = useState("");
   const [recentProjectId, setRecentProjectId] = useState<string | null>(null);
   const [draggedId, setDraggedId] = useState<string | null>(null);
+  const [expandedProjects, setExpandedProjects] = useState<
+    Record<string, boolean>
+  >({});
   const [viewMode, setViewMode] = useState<"list" | "card">(() => {
     return (localStorage.getItem("viewMode") as "list" | "card") || "list";
   });
@@ -380,9 +420,7 @@ const ProjectListPage = () => {
           <ViewToggleButton onClick={toggleViewMode}>
             {viewMode === "list" ? "카드형" : "리스트형"}
           </ViewToggleButton>
-          <ViewToggleButton onClick={() => navigate("/mypage")}>
-            마이페이지
-          </ViewToggleButton>
+          <ProfileAvatar onClick={() => navigate("/mypage")} />
           <StyledLogoutButton onClick={handleSignOut}>
             로그아웃
           </StyledLogoutButton>
@@ -473,8 +511,39 @@ const ProjectListPage = () => {
                     </ProgressBackground>
                   </ProgressWrapper>
                   {project.description && (
-                    <div style={{ fontSize: 12, color: "#aaa" }}>
-                      {project.description}
+                    <div
+                      style={{
+                        fontSize: 12,
+                        color: "#aaa",
+                        whiteSpace: "pre-wrap",
+                        wordBreak: "break-word",
+                        maxWidth: "500px",
+                      }}
+                      onClick={(e) => e.stopPropagation()} // ✅ 부모 클릭 막기
+                    >
+                      {expandedProjects[project.id] ||
+                      project.description.length <= 50
+                        ? project.description
+                        : `${project.description.slice(0, 50)}...`}
+
+                      {project.description.length > 50 && (
+                        <span
+                          onClick={() =>
+                            setExpandedProjects((prev) => ({
+                              ...prev,
+                              [project.id]: !prev[project.id],
+                            }))
+                          }
+                          style={{
+                            marginLeft: 8,
+                            color: "#00aaff",
+                            cursor: "pointer",
+                            fontSize: 12,
+                          }}
+                        >
+                          {expandedProjects[project.id] ? "숨기기" : "더보기"}
+                        </span>
+                      )}
                     </div>
                   )}
                 </span>
@@ -542,95 +611,133 @@ const ProjectListPage = () => {
               onDragOver={handleDragOver}
               onDrop={() => handleDrop(project.id)}
             >
-              {editingId === project.id ? (
-                <ProjectEditFields
-                  name={editingName}
-                  description={editingDescription}
-                  onNameChange={(e) => setEditingName(e.target.value)}
-                  onDescriptionChange={(e) =>
-                    setEditingDescription(e.target.value)
-                  }
-                  onConfirm={confirmEdit}
-                  onCancel={cancelEdit}
-                />
-              ) : (
-                <span
-                  onClick={async () => {
-                    await updateDoc(doc(db, "projects", project.id), {
-                      lastViewedAt: new Date().toISOString(),
-                    });
-                    navigate(`/projects/${project.id}/issues`);
-                  }}
-                >
-                  {project.name}
-                  {project.id === recentProjectId && (
-                    <RecentBadge>최근 본 프로젝트</RecentBadge>
-                  )}
-                  <span style={{ marginLeft: 8, fontSize: 14, color: "#ccc" }}>
-                    ({project.issueCount ?? 0}건)
-                  </span>
-                  <ProgressWrapper>
-                    <ProgressBackground>
-                      <ProgressBar percent={project.completionRate ?? 0} />
-                    </ProgressBackground>
-                  </ProgressWrapper>
-                  {project.description && (
-                    <div style={{ fontSize: 12, color: "#aaa" }}>
-                      {project.description}
-                    </div>
-                  )}
-                </span>
-              )}
-
-              <ActionGroup>
-                {!showTrash && editingId !== project.id && (
-                  <PinButton onClick={() => startEdit(project)}>
-                    <Edit3 size={18} />
-                  </PinButton>
-                )}
-                {!showTrash && (
-                  <PinButton
-                    onClick={() =>
-                      togglePin(project.id, project.isPinned ?? false)
+              <div>
+                {" "}
+                {/* 🔍 이 부분 추가 */}
+                {editingId === project.id ? (
+                  <ProjectEditFields
+                    name={editingName}
+                    description={editingDescription}
+                    onNameChange={(e) => setEditingName(e.target.value)}
+                    onDescriptionChange={(e) =>
+                      setEditingDescription(e.target.value)
                     }
-                  >
-                    {project.isPinned ? (
-                      <PinOff size={20} />
-                    ) : (
-                      <Pin size={20} />
-                    )}
-                  </PinButton>
-                )}
-                {!showTrash && project.userId === auth.currentUser?.uid && (
-                  <PinButton onClick={() => openShareModal(project.id)}>
-                    <UserPlus size={20} />
-                  </PinButton>
-                )}
-                {!showTrash &&
-                  (showArchive ? (
-                    <PinButton onClick={() => unarchiveProject(project.id)}>
-                      <ArchiveX size={20} />
-                    </PinButton>
-                  ) : (
-                    <PinButton onClick={() => archiveProject(project.id)}>
-                      <Archive size={20} />
-                    </PinButton>
-                  ))}
-                {showTrash ? (
-                  <>
-                    <PinButton onClick={() => restoreProject(project.id)}>
-                      <Undo2 size={20} />
-                    </PinButton>
-                    <DeleteButton onClick={() => permanentlyDelete(project.id)}>
-                      <XCircle size={20} />
-                    </DeleteButton>
-                  </>
+                    onConfirm={confirmEdit}
+                    onCancel={cancelEdit}
+                  />
                 ) : (
-                  <DeleteButton onClick={() => softDeleteProject(project.id)}>
-                    <Trash2 size={20} />
-                  </DeleteButton>
+                  <span
+                    onClick={async () => {
+                      await updateDoc(doc(db, "projects", project.id), {
+                        lastViewedAt: new Date().toISOString(),
+                      });
+                      navigate(`/projects/${project.id}/issues`);
+                    }}
+                  >
+                    {project.name}
+                    {project.id === recentProjectId && (
+                      <RecentBadge>최근 본 프로젝트</RecentBadge>
+                    )}
+                    <span
+                      style={{ marginLeft: 8, fontSize: 14, color: "#ccc" }}
+                    >
+                      ({project.issueCount ?? 0}건)
+                    </span>
+                    <ProgressWrapper>
+                      <ProgressBackground>
+                        <ProgressBar percent={project.completionRate ?? 0} />
+                      </ProgressBackground>
+                    </ProgressWrapper>
+                    {project.description && (
+                      <div
+                        style={{
+                          fontSize: 12,
+                          color: "#aaa",
+                          whiteSpace: "pre-wrap",
+                          wordBreak: "break-word",
+                          maxWidth: "500px",
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {expandedProjects[project.id] ||
+                        project.description.length <= 50
+                          ? project.description
+                          : `${project.description.slice(0, 50)}...`}
+                        {project.description.length > 50 && (
+                          <span
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setExpandedProjects((prev) => ({
+                                ...prev,
+                                [project.id]: !prev[project.id],
+                              }));
+                            }}
+                            style={{
+                              marginLeft: 8,
+                              color: "#00aaff",
+                              cursor: "pointer",
+                              fontSize: 12,
+                            }}
+                          >
+                            {expandedProjects[project.id] ? "숨기기" : "더보기"}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </span>
                 )}
-              </ActionGroup>
+                <ActionGroup>
+                  {!showTrash && editingId !== project.id && (
+                    <PinButton onClick={() => startEdit(project)}>
+                      <Edit3 size={18} />
+                    </PinButton>
+                  )}
+                  {!showTrash && (
+                    <PinButton
+                      onClick={() =>
+                        togglePin(project.id, project.isPinned ?? false)
+                      }
+                    >
+                      {project.isPinned ? (
+                        <PinOff size={20} />
+                      ) : (
+                        <Pin size={20} />
+                      )}
+                    </PinButton>
+                  )}
+                  {!showTrash && project.userId === auth.currentUser?.uid && (
+                    <PinButton onClick={() => openShareModal(project.id)}>
+                      <UserPlus size={20} />
+                    </PinButton>
+                  )}
+                  {!showTrash &&
+                    (showArchive ? (
+                      <PinButton onClick={() => unarchiveProject(project.id)}>
+                        <ArchiveX size={20} />
+                      </PinButton>
+                    ) : (
+                      <PinButton onClick={() => archiveProject(project.id)}>
+                        <Archive size={20} />
+                      </PinButton>
+                    ))}
+                  {showTrash ? (
+                    <>
+                      <PinButton onClick={() => restoreProject(project.id)}>
+                        <Undo2 size={20} />
+                      </PinButton>
+                      <DeleteButton
+                        onClick={() => permanentlyDelete(project.id)}
+                      >
+                        <XCircle size={20} />
+                      </DeleteButton>
+                    </>
+                  ) : (
+                    <DeleteButton onClick={() => softDeleteProject(project.id)}>
+                      <Trash2 size={20} />
+                    </DeleteButton>
+                  )}
+                </ActionGroup>
+              </div>
             </CardItem>
           ))}
         </CardGrid>
