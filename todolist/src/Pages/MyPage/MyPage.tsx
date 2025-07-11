@@ -1,6 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { auth, db } from "../../Firebase/firebase";
-import { deleteUser, signOut, updateEmail } from "firebase/auth";
+import {
+  deleteUser,
+  signOut,
+  updateEmail,
+  updatePassword,
+  reauthenticateWithCredential,
+  EmailAuthProvider,
+} from "firebase/auth";
 import { deleteDoc, doc, getDoc, setDoc } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
@@ -24,6 +31,8 @@ function MyPage() {
   const [profileImage, setProfileImage] = useState<string>("");
   const [imageUrl, setImageUrl] = useState<string>("");
   const [newEmail, setNewEmail] = useState<string>("");
+  const [currentPassword, setCurrentPassword] = useState<string>("");
+  const [newPassword, setNewPassword] = useState<string>("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -80,6 +89,26 @@ function MyPage() {
     }
   };
 
+  const handleChangePassword = async () => {
+    const user = auth.currentUser;
+    if (!user || !currentPassword || !newPassword) return;
+    try {
+      const credential = EmailAuthProvider.credential(
+        user.email || "",
+        currentPassword
+      );
+      await reauthenticateWithCredential(user, credential);
+      await updatePassword(user, newPassword);
+      toast.success("비밀번호가 변경되었습니다.");
+      setCurrentPassword("");
+      setNewPassword("");
+    } catch (error: any) {
+      if (error.code === "auth/requires-recent-login")
+        toast.error("다시 로그인하세요.");
+      else toast.error("비밀번호 변경 실패: " + error.message);
+    }
+  };
+
   const handleDeleteAccount = async () => {
     const user = auth.currentUser;
     if (!user) return;
@@ -129,6 +158,25 @@ function MyPage() {
               onChange={(e) => setNewEmail(e.target.value)}
             />
             <SaveButton onClick={handleChangeEmail}>이메일 변경</SaveButton>
+          </InputRow>
+
+          <InputRow>
+            <TextInput
+              type="password"
+              placeholder="현재 비밀번호"
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+            />
+          </InputRow>
+
+          <InputRow>
+            <TextInput
+              type="password"
+              placeholder="새 비밀번호"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+            />
+            <SaveButton onClick={handleChangePassword}>비밀번호 변경</SaveButton>
           </InputRow>
 
           <InputRow>
