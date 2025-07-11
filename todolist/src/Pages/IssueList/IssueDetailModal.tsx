@@ -17,6 +17,7 @@ import {
   CommentList,
   CommentItem,
   CommentActionRow,
+  Tag,
 } from "./IssueDetailModal.styled";
 import { db, auth } from "../../Firebase/firebase";
 import { doc, updateDoc, arrayUnion } from "firebase/firestore";
@@ -40,6 +41,7 @@ interface Issue {
   createdAt?: any;
   status?: string;
   comments?: Comment[];
+  tags?: string[];
 }
 
 interface Props {
@@ -59,6 +61,7 @@ export default function IssueDetailModal({
 }: Props) {
   const [status, setStatus] = useState(issue.status || "할 일");
   const [comments, setComments] = useState<Comment[]>(issue.comments || []);
+  const [tags, setTags] = useState<string[]>(issue.tags || []);
   const [comment, setComment] = useState("");
   const [editIndex, setEditIndex] = useState<number | null>(null);
   const [editText, setEditText] = useState("");
@@ -71,6 +74,10 @@ export default function IssueDetailModal({
     window.addEventListener("keydown", handleEsc);
     return () => window.removeEventListener("keydown", handleEsc);
   }, [onClose]);
+
+  useEffect(() => {
+    setTags(issue.tags || []);
+  }, [issue.tags]);
 
   const formatDate = (timestamp: any) => {
     if (!timestamp?.toDate) return "-";
@@ -159,6 +166,16 @@ export default function IssueDetailModal({
         <Field>
           <span>우선순위:</span> {issue.priority}
         </Field>
+        {tags.length > 0 && (
+          <Field>
+            <span>태그:</span>
+            <div>
+              {tags.map((tag, idx) => (
+                <Tag key={idx}>#{tag}</Tag>
+              ))}
+            </div>
+          </Field>
+        )}
         {issue.category && (
           <Field>
             <span>카테고리:</span> {issue.category}

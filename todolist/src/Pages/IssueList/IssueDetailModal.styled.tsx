@@ -246,3 +246,13 @@ export const CommentActionRow = styled.div`
     background: #868e96;
   }
 `;
+
+export const Tag = styled.div`
+  background-color: #5c7cfa;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  font-size: 12px;
+  margin-top: 6px;
+  display: inline-block;
+`;
