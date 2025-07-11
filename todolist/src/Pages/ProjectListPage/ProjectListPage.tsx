@@ -37,6 +37,8 @@ import {
   ProgressWrapper,
   ProgressBackground,
   ProgressBar,
+  HeaderRow,
+  HeaderActions,
 } from "./ProjectList.styled";
 import ProjectEditFields from "./ProjectEditFields";
 import { db, auth } from "../../Firebase/firebase";
@@ -403,20 +405,14 @@ const ProjectListPage = () => {
 
   return (
     <Container>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
+      <HeaderRow>
         <Title>
           📁 프로젝트 목록{" "}
           <span style={{ fontSize: "16px", marginLeft: "8px", color: "#aaa" }}>
             ({filteredProjects.length}개)
           </span>
         </Title>
-        <div style={{ display: "flex", gap: "8px" }}>
+        <HeaderActions>
           <ViewToggleButton onClick={toggleViewMode}>
             {viewMode === "list" ? "카드형" : "리스트형"}
           </ViewToggleButton>
@@ -424,8 +420,8 @@ const ProjectListPage = () => {
           <StyledLogoutButton onClick={handleSignOut}>
             로그아웃
           </StyledLogoutButton>
-        </div>
-      </div>
+        </HeaderActions>
+      </HeaderRow>
 
       <InputRow>
         <ProjectInput

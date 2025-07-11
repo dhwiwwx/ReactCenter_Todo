@@ -11,6 +11,7 @@ import {
   LogoSection,
   ServiceName,
   SubTitle,
+  Message,
 } from "../Login/Login.styled";
 
 function ResetPassword() {
@@ -73,18 +74,7 @@ function ResetPassword() {
           onChange={(e) => setEmail(e.target.value)}
           onKeyDown={handleKeyDown}
         />
-        {message && (
-          <p
-            style={{
-              color: isSuccess ? "#4fa94d" : "#ff6b6b",
-              fontSize: "13px",
-              marginBottom: "12px",
-              marginTop: "-6px",
-            }}
-          >
-            {message}
-          </p>
-        )}
+        {message && <Message success={isSuccess}>{message}</Message>}
         <Button onClick={handleReset} disabled={!emailValid || isSubmitting}>
           {isSubmitting ? "전송 중..." : "이메일 발송"}
         </Button>
