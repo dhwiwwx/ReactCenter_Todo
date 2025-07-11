@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   Container,
   List,
@@ -27,6 +27,7 @@ import {
   Initial,
   CommentCount,
   Tag,
+  OutlineButton,
 } from "./IssueList.styled";
 import styled from "styled-components";
 import { ArrowLeft } from "lucide-react";
@@ -74,7 +75,9 @@ function IssueList() {
   const [statusFilter, setStatusFilter] = useState<string>("전체");
   const [tagFilter, setTagFilter] = useState<string>("전체");
   const [selectedIssue, setSelectedIssue] = useState<Issue | null>(null);
-  const [visibleCount, setVisibleCount] = useState(10);
+  const LOAD_INCREMENT = 10;
+  const [visibleCount, setVisibleCount] = useState(LOAD_INCREMENT);
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
   const navigate = useNavigate();
   const { projectId } = useParams<{ projectId: string }>();
 
@@ -101,7 +104,7 @@ function IssueList() {
       })) as Issue[];
 
       setIssues(data);
-      setVisibleCount(10);
+      setVisibleCount(LOAD_INCREMENT);
     } catch (e) {
       console.error("이슈 불러오기 실패:", e);
       setIssues([]);
@@ -115,7 +118,7 @@ function IssueList() {
   }, [projectId]);
 
   useEffect(() => {
-    setVisibleCount(10);
+    setVisibleCount(LOAD_INCREMENT);
   }, [searchInput, sortOrder, statusFilter, tagFilter]);
 
   const handleCardClick = (issue: Issue) => setSelectedIssue(issue);
@@ -170,6 +173,18 @@ function IssueList() {
         100;
 
   const allTags = Array.from(new Set(issues.flatMap((i) => i.tags || [])));
+
+  // Infinite scroll: load more when the observer element enters view
+  useEffect(() => {
+    if (!loadMoreRef.current) return;
+    const observer = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) {
+        setVisibleCount((prev) => Math.min(prev + LOAD_INCREMENT, filtered.length));
+      }
+    });
+    observer.observe(loadMoreRef.current);
+    return () => observer.disconnect();
+  }, [filtered.length]);
 
   return (
     <Container>
@@ -291,6 +306,13 @@ function IssueList() {
             </List>
           )}
         </ScrollableListWrapper>
+        {visibleCount < filtered.length && (
+          <div ref={loadMoreRef} style={{ textAlign: "center", marginTop: 20 }}>
+            <OutlineButton onClick={() => setVisibleCount((v) => v + LOAD_INCREMENT)}>
+              더 보기
+            </OutlineButton>
+          </div>
+        )}
       </ListBackground>
 
       {selectedIssue && (
