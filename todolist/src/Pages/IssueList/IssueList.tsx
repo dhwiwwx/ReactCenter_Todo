@@ -36,7 +36,7 @@ import { signOut } from "firebase/auth";
 import { auth, db } from "../../Firebase/firebase";
 import {
   collection,
-  getDocs,
+  onSnapshot,
   query,
   orderBy,
   deleteDoc,
@@ -81,40 +81,41 @@ function IssueList() {
   const navigate = useNavigate();
   const { projectId } = useParams<{ projectId: string }>();
 
-  const fetchIssues = async () => {
-    try {
-      setIsLoading(true);
-
-      if (!projectId) {
-        console.warn("projectId가 없습니다.");
-        setIssues([]);
-        return;
-      }
-
-      const q = query(
-        collection(db, "issues"),
-        where("projectId", "==", projectId),
-        orderBy("createdAt", "desc")
-      );
-      const snapshot = await getDocs(q);
-
-      const data = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      })) as Issue[];
-
-      setIssues(data);
-      setVisibleCount(LOAD_INCREMENT);
-    } catch (e) {
-      console.error("이슈 불러오기 실패:", e);
-      setIssues([]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchIssues();
+    setIsLoading(true);
+
+    if (!projectId) {
+      console.warn("projectId가 없습니다.");
+      setIssues([]);
+      setIsLoading(false);
+      return;
+    }
+
+    const q = query(
+      collection(db, "issues"),
+      where("projectId", "==", projectId),
+      orderBy("createdAt", "desc")
+    );
+
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const data = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as Issue[];
+        setIssues(data);
+        setVisibleCount(LOAD_INCREMENT);
+        setIsLoading(false);
+      },
+      (error) => {
+        console.error("이슈 불러오기 실패:", error);
+        setIssues([]);
+        setIsLoading(false);
+      }
+    );
+
+    return unsubscribe;
   }, [projectId]);
 
   useEffect(() => {
@@ -321,7 +322,6 @@ function IssueList() {
           onClose={handleCloseModal}
           onEdit={(id) => handleEditIssue(id, selectedIssue)}
           onDelete={handleDeleteIssue}
-          onStatusChange={fetchIssues}
         />
       )}
     </Container>
