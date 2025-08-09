@@ -26,6 +26,7 @@ import {
   SNSButton,
   SubButtonRow,
   ShakeWrapper,
+  ErrorMessage,
 } from "./Login.styled";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
@@ -265,6 +266,8 @@ function Login() {
             </TogglePassword>
           </PasswordWrapper>
         </ShakeWrapper>
+
+        {errorMessage && <ErrorMessage>{errorMessage}</ErrorMessage>}
 
         {capsLockOn && (
           <div style={{ color: "orange", marginBottom: "10px" }}>
