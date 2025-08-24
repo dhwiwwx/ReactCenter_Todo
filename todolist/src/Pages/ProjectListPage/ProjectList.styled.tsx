@@ -298,3 +298,23 @@ export const PinnedBar = styled.div`
   font-size: 14px;
   font-weight: bold;
 `;
+
+export const ProjectCount = styled.span`
+  font-size: 16px;
+  margin-left: 8px;
+  color: #aaa;
+`;
+
+export const LoadingMessage = styled.div`
+  text-align: center;
+  padding: 40px;
+  font-size: 18px;
+`;
+
+export const ProfileImage = styled.img`
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  object-fit: cover;
+`;
