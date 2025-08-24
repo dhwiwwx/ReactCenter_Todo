@@ -36,6 +36,7 @@ import {
   arrayUnion,
 } from "firebase/firestore";
 import ProjectShareModal from "./ProjectShareModal";
+import ConfirmModal from "./ConfirmModal";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -290,43 +291,68 @@ const ProjectListPage = () => {
     fetchProjects();
   };
 
-  const softDeleteProject = async (projectId: string) => {
-    const ok = window.confirm("이 프로젝트를 휴지통으로 보내시겠어요?");
-    if (!ok) return;
-    await updateDoc(doc(db, "projects", projectId), {
-      isDeleted: true,
-      deletedAt: new Date().toISOString(),
+  const [confirmState, setConfirmState] = useState<
+    { message: string; onConfirm: () => Promise<void> } | null
+  >(null);
+
+  const softDeleteProject = (projectId: string) => {
+    setConfirmState({
+      message: "이 프로젝트를 휴지통으로 보내시겠어요?",
+      onConfirm: async () => {
+        await updateDoc(doc(db, "projects", projectId), {
+          isDeleted: true,
+          deletedAt: new Date().toISOString(),
+        });
+        fetchProjects();
+      },
     });
-    fetchProjects();
   };
 
-  const restoreProject = async (projectId: string) => {
-    await updateDoc(doc(db, "projects", projectId), {
-      isDeleted: false,
-      deletedAt: null,
+  const restoreProject = (projectId: string) => {
+    setConfirmState({
+      message: "이 프로젝트를 복원하시겠어요?",
+      onConfirm: async () => {
+        await updateDoc(doc(db, "projects", projectId), {
+          isDeleted: false,
+          deletedAt: null,
+        });
+        fetchProjects();
+      },
     });
-    fetchProjects();
   };
 
-  const archiveProject = async (projectId: string) => {
-    await updateDoc(doc(db, "projects", projectId), {
-      isArchived: true,
+  const archiveProject = (projectId: string) => {
+    setConfirmState({
+      message: "이 프로젝트를 보관하시겠어요?",
+      onConfirm: async () => {
+        await updateDoc(doc(db, "projects", projectId), {
+          isArchived: true,
+        });
+        fetchProjects();
+      },
     });
-    fetchProjects();
   };
 
-  const unarchiveProject = async (projectId: string) => {
-    await updateDoc(doc(db, "projects", projectId), {
-      isArchived: false,
+  const unarchiveProject = (projectId: string) => {
+    setConfirmState({
+      message: "이 프로젝트를 보관 해제하시겠어요?",
+      onConfirm: async () => {
+        await updateDoc(doc(db, "projects", projectId), {
+          isArchived: false,
+        });
+        fetchProjects();
+      },
     });
-    fetchProjects();
   };
 
-  const permanentlyDelete = async (projectId: string) => {
-    const ok = window.confirm("정말로 완전히 삭제하시겠어요?");
-    if (!ok) return;
-    await deleteDoc(doc(db, "projects", projectId));
-    fetchProjects();
+  const permanentlyDelete = (projectId: string) => {
+    setConfirmState({
+      message: "정말로 완전히 삭제하시겠어요?",
+      onConfirm: async () => {
+        await deleteDoc(doc(db, "projects", projectId));
+        fetchProjects();
+      },
+    });
   };
 
   const togglePin = async (projectId: string, isPinned: boolean) => {
@@ -548,6 +574,16 @@ const ProjectListPage = () => {
           users={users.filter((u) => u.uid !== auth.currentUser?.uid)}
           onAdd={handleAddMember}
           onClose={() => setShareProjectId(null)}
+        />
+      )}
+      {confirmState && (
+        <ConfirmModal
+          message={confirmState.message}
+          onConfirm={async () => {
+            await confirmState.onConfirm();
+            setConfirmState(null);
+          }}
+          onCancel={() => setConfirmState(null)}
         />
       )}
       <ToastContainer position="top-center" autoClose={2500} />
