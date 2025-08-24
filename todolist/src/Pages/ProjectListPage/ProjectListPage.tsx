@@ -124,92 +124,101 @@ const ProjectListPage = () => {
   };
 
   const fetchUsers = async () => {
-    const snap = await getDocs(collection(db, "users"));
-    const list = snap.docs.map((d) => ({ uid: d.id, ...(d.data() as any) }));
-    setUsers(list);
+    try {
+      const snap = await getDocs(collection(db, "users"));
+      const list = snap.docs.map((d) => ({ uid: d.id, ...(d.data() as any) }));
+      setUsers(list);
+    } catch (error) {
+      console.error("사용자 목록 로드 실패:", error);
+      setErrorMessage("사용자 정보를 불러오는 중 오류가 발생했습니다.");
+    }
   };
 
   const fetchProjects = async () => {
     setLoading(true);
-    const uid = auth.currentUser?.uid;
-    if (!uid) {
-      setProjects([]);
-      setLoading(false);
-      return;
-    }
-    const projectQuery = query(
-      collection(db, "projects"),
-      where("memberIds", "array-contains", uid)
-    );
-    const projectSnapshot = await getDocs(projectQuery);
-
-    const data = await Promise.all(
-      projectSnapshot.docs.map(async (docSnap) => {
-        const projectId = docSnap.id;
-        const data = docSnap.data();
-        const q = query(
-          collection(db, "issues"),
-          where("projectId", "==", projectId)
-        );
-        const issueSnapshot = await getDocs(q);
-        const issueCount = issueSnapshot.size;
-
-        const finishedSnapshot = await getDocs(
-          query(
-            collection(db, "issues"),
-            where("projectId", "==", projectId),
-            where("status", "==", "완료")
-          )
-        );
-        const finishedCount = finishedSnapshot.size;
-        const completionRate =
-          issueCount > 0 ? Math.round((finishedCount / issueCount) * 100) : 0;
-
-        return {
-          id: projectId,
-          ...(data as any),
-          issueCount,
-          completionRate,
-          isPinned: data.isPinned || false,
-          isDeleted: data.isDeleted || false,
-          isArchived: data.isArchived || false,
-          lastViewedAt: data.lastViewedAt || null,
-          order: data.order ?? 0,
-        } as Project;
-      })
-    );
-
-    const filtered = data.filter(
-      (p) => p.isDeleted === showTrash && p.isArchived === showArchive
-    );
-
-    const sorted = filtered.sort((a, b) => {
-      if (a.isPinned && !b.isPinned) return -1;
-      if (!a.isPinned && b.isPinned) return 1;
-      if (a.order !== undefined && b.order !== undefined) {
-        return a.order - b.order;
+    try {
+      const uid = auth.currentUser?.uid;
+      if (!uid) {
+        setProjects([]);
+        return;
       }
-      const aTime = a.lastViewedAt ? new Date(a.lastViewedAt).getTime() : 0;
-      const bTime = b.lastViewedAt ? new Date(b.lastViewedAt).getTime() : 0;
-      return bTime - aTime;
-    });
+      const projectQuery = query(
+        collection(db, "projects"),
+        where("memberIds", "array-contains", uid)
+      );
+      const projectSnapshot = await getDocs(projectQuery);
 
-    const mostRecent = filtered.reduce<Project | null>((prev, cur) => {
-      if (!prev) return cur;
-      const prevTime = prev.lastViewedAt
-        ? new Date(prev.lastViewedAt).getTime()
-        : 0;
-      const curTime = cur.lastViewedAt
-        ? new Date(cur.lastViewedAt).getTime()
-        : 0;
-      return curTime > prevTime ? cur : prev;
-    }, null);
+      const data = await Promise.all(
+        projectSnapshot.docs.map(async (docSnap) => {
+          const projectId = docSnap.id;
+          const data = docSnap.data();
+          const q = query(
+            collection(db, "issues"),
+            where("projectId", "==", projectId)
+          );
+          const issueSnapshot = await getDocs(q);
+          const issueCount = issueSnapshot.size;
 
-    setRecentProjectId(mostRecent ? mostRecent.id : null);
+          const finishedSnapshot = await getDocs(
+            query(
+              collection(db, "issues"),
+              where("projectId", "==", projectId),
+              where("status", "==", "완료")
+            )
+          );
+          const finishedCount = finishedSnapshot.size;
+          const completionRate =
+            issueCount > 0 ? Math.round((finishedCount / issueCount) * 100) : 0;
 
-    setProjects(sorted);
+          return {
+            id: projectId,
+            ...(data as any),
+            issueCount,
+            completionRate,
+            isPinned: data.isPinned || false,
+            isDeleted: data.isDeleted || false,
+            isArchived: data.isArchived || false,
+            lastViewedAt: data.lastViewedAt || null,
+            order: data.order ?? 0,
+          } as Project;
+        })
+      );
 
-    setLoading(false);
+      const filtered = data.filter(
+        (p) => p.isDeleted === showTrash && p.isArchived === showArchive
+      );
+
+      const sorted = filtered.sort((a, b) => {
+        if (a.isPinned && !b.isPinned) return -1;
+        if (!a.isPinned && b.isPinned) return 1;
+        if (a.order !== undefined && b.order !== undefined) {
+          return a.order - b.order;
+        }
+        const aTime = a.lastViewedAt ? new Date(a.lastViewedAt).getTime() : 0;
+        const bTime = b.lastViewedAt ? new Date(b.lastViewedAt).getTime() : 0;
+        return bTime - aTime;
+      });
+
+      const mostRecent = filtered.reduce<Project | null>((prev, cur) => {
+        if (!prev) return cur;
+        const prevTime = prev.lastViewedAt
+          ? new Date(prev.lastViewedAt).getTime()
+          : 0;
+        const curTime = cur.lastViewedAt
+          ? new Date(cur.lastViewedAt).getTime()
+          : 0;
+        return curTime > prevTime ? cur : prev;
+      }, null);
+
+      setRecentProjectId(mostRecent ? mostRecent.id : null);
+
+      setProjects(sorted);
+    } catch (error) {
+      console.error("프로젝트 목록 로드 실패:", error);
+      setErrorMessage("프로젝트를 불러오는 중 오류가 발생했습니다.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const toggleViewMode = () => {
@@ -244,13 +253,18 @@ const ProjectListPage = () => {
       toast.error(message);
       return;
     }
-    await updateDoc(doc(db, "projects", editingId), {
-      name: editingName,
-      description: editingDescription,
-    });
-    setErrorMessage("");
-    setEditingId(null);
-    fetchProjects();
+    try {
+      await updateDoc(doc(db, "projects", editingId), {
+        name: editingName,
+        description: editingDescription,
+      });
+      setErrorMessage("");
+      setEditingId(null);
+      fetchProjects();
+    } catch (error) {
+      console.error("프로젝트 수정 실패:", error);
+      setErrorMessage("프로젝트를 수정하는 중 오류가 발생했습니다.");
+    }
   };
 
   const cancelEdit = () => {
@@ -272,23 +286,28 @@ const ProjectListPage = () => {
       (max, p) => Math.max(max, p.order ?? 0),
       -1
     );
-    await addDoc(collection(db, "projects"), {
-      userId: uid,
+    try {
+      await addDoc(collection(db, "projects"), {
+        userId: uid,
 
-      memberIds: [uid],
+        memberIds: [uid],
 
-      name: newProjectName.trim(),
-      description: newDescription.trim(),
-      isPinned: false,
-      isDeleted: false,
-      isArchived: false,
-      lastViewedAt: new Date().toISOString(),
-      order: maxOrder + 1,
-    });
-    setErrorMessage("");
-    setNewProjectName("");
-    setNewDescription("");
-    fetchProjects();
+        name: newProjectName.trim(),
+        description: newDescription.trim(),
+        isPinned: false,
+        isDeleted: false,
+        isArchived: false,
+        lastViewedAt: new Date().toISOString(),
+        order: maxOrder + 1,
+      });
+      setErrorMessage("");
+      setNewProjectName("");
+      setNewDescription("");
+      fetchProjects();
+    } catch (error) {
+      console.error("프로젝트 추가 실패:", error);
+      setErrorMessage("프로젝트를 추가하는 중 오류가 발생했습니다.");
+    }
   };
 
   const [confirmState, setConfirmState] = useState<
@@ -299,11 +318,16 @@ const ProjectListPage = () => {
     setConfirmState({
       message: "이 프로젝트를 휴지통으로 보내시겠어요?",
       onConfirm: async () => {
-        await updateDoc(doc(db, "projects", projectId), {
-          isDeleted: true,
-          deletedAt: new Date().toISOString(),
-        });
-        fetchProjects();
+        try {
+          await updateDoc(doc(db, "projects", projectId), {
+            isDeleted: true,
+            deletedAt: new Date().toISOString(),
+          });
+          fetchProjects();
+        } catch (error) {
+          console.error("프로젝트 삭제 실패:", error);
+          setErrorMessage("프로젝트를 삭제하는 중 오류가 발생했습니다.");
+        }
       },
     });
   };
@@ -312,11 +336,16 @@ const ProjectListPage = () => {
     setConfirmState({
       message: "이 프로젝트를 복원하시겠어요?",
       onConfirm: async () => {
-        await updateDoc(doc(db, "projects", projectId), {
-          isDeleted: false,
-          deletedAt: null,
-        });
-        fetchProjects();
+        try {
+          await updateDoc(doc(db, "projects", projectId), {
+            isDeleted: false,
+            deletedAt: null,
+          });
+          fetchProjects();
+        } catch (error) {
+          console.error("프로젝트 복원 실패:", error);
+          setErrorMessage("프로젝트를 복원하는 중 오류가 발생했습니다.");
+        }
       },
     });
   };
@@ -325,10 +354,15 @@ const ProjectListPage = () => {
     setConfirmState({
       message: "이 프로젝트를 보관하시겠어요?",
       onConfirm: async () => {
-        await updateDoc(doc(db, "projects", projectId), {
-          isArchived: true,
-        });
-        fetchProjects();
+        try {
+          await updateDoc(doc(db, "projects", projectId), {
+            isArchived: true,
+          });
+          fetchProjects();
+        } catch (error) {
+          console.error("프로젝트 보관 실패:", error);
+          setErrorMessage("프로젝트를 보관하는 중 오류가 발생했습니다.");
+        }
       },
     });
   };
@@ -337,10 +371,15 @@ const ProjectListPage = () => {
     setConfirmState({
       message: "이 프로젝트를 보관 해제하시겠어요?",
       onConfirm: async () => {
-        await updateDoc(doc(db, "projects", projectId), {
-          isArchived: false,
-        });
-        fetchProjects();
+        try {
+          await updateDoc(doc(db, "projects", projectId), {
+            isArchived: false,
+          });
+          fetchProjects();
+        } catch (error) {
+          console.error("프로젝트 보관 해제 실패:", error);
+          setErrorMessage("프로젝트 보관 해제 중 오류가 발생했습니다.");
+        }
       },
     });
   };
@@ -349,45 +388,70 @@ const ProjectListPage = () => {
     setConfirmState({
       message: "정말로 완전히 삭제하시겠어요?",
       onConfirm: async () => {
-        await deleteDoc(doc(db, "projects", projectId));
-        fetchProjects();
+        try {
+          await deleteDoc(doc(db, "projects", projectId));
+          fetchProjects();
+        } catch (error) {
+          console.error("프로젝트 완전 삭제 실패:", error);
+          setErrorMessage("프로젝트를 완전히 삭제하는 중 오류가 발생했습니다.");
+        }
       },
     });
   };
 
   const togglePin = async (projectId: string, isPinned: boolean) => {
-    await updateDoc(doc(db, "projects", projectId), {
-      isPinned: !isPinned,
-    });
-    fetchProjects();
+    try {
+      await updateDoc(doc(db, "projects", projectId), {
+        isPinned: !isPinned,
+      });
+      fetchProjects();
+    } catch (error) {
+      console.error("프로젝트 고정 상태 변경 실패:", error);
+      setErrorMessage("프로젝트 고정 상태 변경 중 오류가 발생했습니다.");
+    }
   };
 
   const openShareModal = (projectId: string) => {
     setShareProjectId(projectId);
   };
 
-    const handleAddMember = async (uid: string) => {
-      if (!shareProjectId) return;
+  const handleAddMember = async (uid: string) => {
+    if (!shareProjectId) return;
+    try {
       await updateDoc(doc(db, "projects", shareProjectId), {
         memberIds: arrayUnion(uid),
       });
       setShareProjectId(null);
       fetchProjects();
-    };
+    } catch (error) {
+      console.error("프로젝트 멤버 추가 실패:", error);
+      setErrorMessage("멤버를 추가하는 중 오류가 발생했습니다.");
+    }
+  };
 
-    const handleProjectClick = async (projectId: string) => {
+  const handleProjectClick = async (projectId: string) => {
+    try {
       await updateDoc(doc(db, "projects", projectId), {
         lastViewedAt: new Date().toISOString(),
       });
       navigate(`/projects/${projectId}/issues`);
-    };
+    } catch (error) {
+      console.error("프로젝트 이동 실패:", error);
+      setErrorMessage("프로젝트를 여는 중 오류가 발생했습니다.");
+    }
+  };
 
-    const saveProjectOrder = async (list: Project[]) => {
+  const saveProjectOrder = async (list: Project[]) => {
+    try {
       await Promise.all(
         list.map((p, index) =>
           updateDoc(doc(db, "projects", p.id), { order: index })
         )
-    );
+      );
+    } catch (error) {
+      console.error("프로젝트 순서 저장 실패:", error);
+      setErrorMessage("프로젝트 순서를 저장하는 중 오류가 발생했습니다.");
+    }
   };
 
   const handleDragStart = (id: string) => {
