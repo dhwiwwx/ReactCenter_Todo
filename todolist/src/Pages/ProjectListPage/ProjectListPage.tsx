@@ -19,6 +19,9 @@ import {
   PinnedBar,
   HeaderRow,
   HeaderActions,
+  ProjectCount,
+  LoadingMessage,
+  ProfileImage,
 } from "./ProjectList.styled";
 import ProjectItemContent from "./ProjectItemContent";
 import { db, auth } from "../../Firebase/firebase";
@@ -76,17 +79,10 @@ const ProfileAvatar = ({ onClick }: { onClick: () => void }) => {
   }, []);
 
   return (
-    <img
+    <ProfileImage
       src={profileImage || "https://placekitten.com/200/200"}
       alt="프로필"
       onClick={onClick}
-      style={{
-        width: 36,
-        height: 36,
-        borderRadius: "50%",
-        cursor: "pointer",
-        objectFit: "cover",
-      }}
     />
   );
 };
@@ -488,12 +484,10 @@ const ProjectListPage = () => {
   return (
     <Container>
       <HeaderRow>
-        <Title>
-          📁 프로젝트 목록{" "}
-          <span style={{ fontSize: "16px", marginLeft: "8px", color: "#aaa" }}>
-            ({filteredProjects.length}개)
-          </span>
-        </Title>
+          <Title>
+            📁 프로젝트 목록{" "}
+            <ProjectCount>({filteredProjects.length}개)</ProjectCount>
+          </Title>
         <HeaderActions>
           <ViewToggleButton onClick={toggleViewMode}>
             {viewMode === "list" ? "카드형" : "리스트형"}
@@ -542,11 +536,9 @@ const ProjectListPage = () => {
           고정: {pinnedProjects.map((p) => p.name).join(", ")}
         </PinnedBar>
       )}
-      {loading ? (
-        <div style={{ textAlign: "center", padding: "40px", fontSize: "18px" }}>
-          불러오는 중...
-        </div>
-      ) : viewMode === "list" ? (
+        {loading ? (
+          <LoadingMessage>불러오는 중...</LoadingMessage>
+        ) : viewMode === "list" ? (
         <ProjectList>
             {[...pinnedProjects, ...otherProjects].map((project) => (
               <ProjectItem
