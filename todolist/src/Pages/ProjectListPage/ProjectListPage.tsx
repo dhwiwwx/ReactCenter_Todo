@@ -2,45 +2,25 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  Trash2,
-  Pin,
-  PinOff,
-  Undo2,
-  XCircle,
-  Edit3,
-  Check,
-  UserPlus,
-  Archive,
-  ArchiveX,
-} from "lucide-react";
-import {
   Container,
   Title,
   ProjectList,
   ProjectItem,
   CardGrid,
   CardItem,
-  RecentBadge,
   InputRow,
   ProjectInput,
   AddButton,
   ToggleButton,
-  DeleteButton,
-  PinButton,
-  ActionGroup,
   DescriptionInput,
-  EditInput,
   StyledLogoutButton,
   ViewToggleButton,
   ErrorMessage,
   PinnedBar,
-  ProgressWrapper,
-  ProgressBackground,
-  ProgressBar,
   HeaderRow,
   HeaderActions,
 } from "./ProjectList.styled";
-import ProjectEditFields from "./ProjectEditFields";
+import ProjectItemContent from "./ProjectItemContent";
 import { db, auth } from "../../Firebase/firebase";
 import { signOut } from "firebase/auth";
 import {
@@ -59,7 +39,7 @@ import ProjectShareModal from "./ProjectShareModal";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-interface Project {
+export interface Project {
   id: string;
   name: string;
   userId?: string;
@@ -360,20 +340,27 @@ const ProjectListPage = () => {
     setShareProjectId(projectId);
   };
 
-  const handleAddMember = async (uid: string) => {
-    if (!shareProjectId) return;
-    await updateDoc(doc(db, "projects", shareProjectId), {
-      memberIds: arrayUnion(uid),
-    });
-    setShareProjectId(null);
-    fetchProjects();
-  };
+    const handleAddMember = async (uid: string) => {
+      if (!shareProjectId) return;
+      await updateDoc(doc(db, "projects", shareProjectId), {
+        memberIds: arrayUnion(uid),
+      });
+      setShareProjectId(null);
+      fetchProjects();
+    };
 
-  const saveProjectOrder = async (list: Project[]) => {
-    await Promise.all(
-      list.map((p, index) =>
-        updateDoc(doc(db, "projects", p.id), { order: index })
-      )
+    const handleProjectClick = async (projectId: string) => {
+      await updateDoc(doc(db, "projects", projectId), {
+        lastViewedAt: new Date().toISOString(),
+      });
+      navigate(`/projects/${projectId}/issues`);
+    };
+
+    const saveProjectOrder = async (list: Project[]) => {
+      await Promise.all(
+        list.map((p, index) =>
+          updateDoc(doc(db, "projects", p.id), { order: index })
+        )
     );
   };
 
@@ -471,278 +458,91 @@ const ProjectListPage = () => {
         </div>
       ) : viewMode === "list" ? (
         <ProjectList>
-          {[...pinnedProjects, ...otherProjects].map((project) => (
-            <ProjectItem
-              key={project.id}
-              draggable={!project.isPinned}
-              onDragStart={() => handleDragStart(project.id)}
-              onDragOver={handleDragOver}
-              onDrop={() => handleDrop(project.id)}
-            >
-              {editingId === project.id ? (
-                <ProjectEditFields
-                  name={editingName}
-                  description={editingDescription}
+            {[...pinnedProjects, ...otherProjects].map((project) => (
+              <ProjectItem
+                key={project.id}
+                draggable={!project.isPinned}
+                onDragStart={() => handleDragStart(project.id)}
+                onDragOver={handleDragOver}
+                onDrop={() => handleDrop(project.id)}
+              >
+                <ProjectItemContent
+                  project={project}
+                  mode="list"
+                  isEditing={editingId === project.id}
+                  editingName={editingName}
+                  editingDescription={editingDescription}
                   onNameChange={(e) => setEditingName(e.target.value)}
-                  onDescriptionChange={(e) =>
-                    setEditingDescription(e.target.value)
+                  onDescriptionChange={(e) => setEditingDescription(e.target.value)}
+                  onConfirmEdit={confirmEdit}
+                  onCancelEdit={cancelEdit}
+                  onProjectClick={handleProjectClick}
+                  isRecent={project.id === recentProjectId}
+                  expanded={!!expandedProjects[project.id]}
+                  onToggleExpand={() =>
+                    setExpandedProjects((prev) => ({
+                      ...prev,
+                      [project.id]: !prev[project.id],
+                    }))
                   }
-                  onConfirm={confirmEdit}
-                  onCancel={cancelEdit}
+                  startEdit={startEdit}
+                  togglePin={togglePin}
+                  openShareModal={openShareModal}
+                  archiveProject={archiveProject}
+                  unarchiveProject={unarchiveProject}
+                  restoreProject={restoreProject}
+                  permanentlyDelete={permanentlyDelete}
+                  softDeleteProject={softDeleteProject}
+                  showTrash={showTrash}
+                  showArchive={showArchive}
                 />
-              ) : (
-                <span
-                  onClick={async () => {
-                    await updateDoc(doc(db, "projects", project.id), {
-                      lastViewedAt: new Date().toISOString(),
-                    });
-                    navigate(`/projects/${project.id}/issues`);
-                  }}
-                >
-                  {project.name}
-                  {project.id === recentProjectId && (
-                    <RecentBadge>최근 본 프로젝트</RecentBadge>
-                  )}
-                  <span style={{ marginLeft: 8, fontSize: 14, color: "#ccc" }}>
-                    ({project.issueCount ?? 0}건)
-                  </span>
-                  <ProgressWrapper>
-                    <ProgressBackground>
-                      <ProgressBar percent={project.completionRate ?? 0} />
-                    </ProgressBackground>
-                  </ProgressWrapper>
-                  {project.description && (
-                    <div
-                      style={{
-                        fontSize: 12,
-                        color: "#aaa",
-                        whiteSpace: "pre-wrap",
-                        wordBreak: "break-word",
-                        maxWidth: "500px",
-                      }}
-                      onClick={(e) => e.stopPropagation()} // ✅ 부모 클릭 막기
-                    >
-                      {expandedProjects[project.id] ||
-                      project.description.length <= 50
-                        ? project.description
-                        : `${project.description.slice(0, 50)}...`}
-
-                      {project.description.length > 50 && (
-                        <span
-                          onClick={() =>
-                            setExpandedProjects((prev) => ({
-                              ...prev,
-                              [project.id]: !prev[project.id],
-                            }))
-                          }
-                          style={{
-                            marginLeft: 8,
-                            color: "#00aaff",
-                            cursor: "pointer",
-                            fontSize: 12,
-                          }}
-                        >
-                          {expandedProjects[project.id] ? "숨기기" : "더보기"}
-                        </span>
-                      )}
-                    </div>
-                  )}
-                </span>
-              )}
-
-              <ActionGroup>
-                {!showTrash && editingId !== project.id && (
-                  <PinButton onClick={() => startEdit(project)}>
-                    <Edit3 size={18} />
-                  </PinButton>
-                )}
-                {!showTrash && (
-                  <PinButton
-                    onClick={() =>
-                      togglePin(project.id, project.isPinned ?? false)
-                    }
-                  >
-                    {project.isPinned ? (
-                      <PinOff size={20} />
-                    ) : (
-                      <Pin size={20} />
-                    )}
-                  </PinButton>
-                )}
-                {!showTrash && project.userId === auth.currentUser?.uid && (
-                  <PinButton onClick={() => openShareModal(project.id)}>
-                    <UserPlus size={20} />
-                  </PinButton>
-                )}
-                {!showTrash &&
-                  (showArchive ? (
-                    <PinButton onClick={() => unarchiveProject(project.id)}>
-                      <ArchiveX size={20} />
-                    </PinButton>
-                  ) : (
-                    <PinButton onClick={() => archiveProject(project.id)}>
-                      <Archive size={20} />
-                    </PinButton>
-                  ))}
-                {showTrash ? (
-                  <>
-                    <PinButton onClick={() => restoreProject(project.id)}>
-                      <Undo2 size={20} />
-                    </PinButton>
-                    <DeleteButton onClick={() => permanentlyDelete(project.id)}>
-                      <XCircle size={20} />
-                    </DeleteButton>
-                  </>
-                ) : (
-                  <DeleteButton onClick={() => softDeleteProject(project.id)}>
-                    <Trash2 size={20} />
-                  </DeleteButton>
-                )}
-              </ActionGroup>
-            </ProjectItem>
-          ))}
-        </ProjectList>
+              </ProjectItem>
+            ))}
+          </ProjectList>
       ) : (
-        <CardGrid>
-          {[...pinnedProjects, ...otherProjects].map((project) => (
-            <CardItem
-              key={project.id}
-              draggable={!project.isPinned}
-              onDragStart={() => handleDragStart(project.id)}
-              onDragOver={handleDragOver}
-              onDrop={() => handleDrop(project.id)}
-            >
-              <div>
-                {" "}
-                {/* 🔍 이 부분 추가 */}
-                {editingId === project.id ? (
-                  <ProjectEditFields
-                    name={editingName}
-                    description={editingDescription}
-                    onNameChange={(e) => setEditingName(e.target.value)}
-                    onDescriptionChange={(e) =>
-                      setEditingDescription(e.target.value)
-                    }
-                    onConfirm={confirmEdit}
-                    onCancel={cancelEdit}
-                  />
-                ) : (
-                  <span
-                    onClick={async () => {
-                      await updateDoc(doc(db, "projects", project.id), {
-                        lastViewedAt: new Date().toISOString(),
-                      });
-                      navigate(`/projects/${project.id}/issues`);
-                    }}
-                  >
-                    {project.name}
-                    {project.id === recentProjectId && (
-                      <RecentBadge>최근 본 프로젝트</RecentBadge>
-                    )}
-                    <span
-                      style={{ marginLeft: 8, fontSize: 14, color: "#ccc" }}
-                    >
-                      ({project.issueCount ?? 0}건)
-                    </span>
-                    <ProgressWrapper>
-                      <ProgressBackground>
-                        <ProgressBar percent={project.completionRate ?? 0} />
-                      </ProgressBackground>
-                    </ProgressWrapper>
-                    {project.description && (
-                      <div
-                        style={{
-                          fontSize: 12,
-                          color: "#aaa",
-                          whiteSpace: "pre-wrap",
-                          wordBreak: "break-word",
-                          maxWidth: "500px",
-                        }}
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        {expandedProjects[project.id] ||
-                        project.description.length <= 50
-                          ? project.description
-                          : `${project.description.slice(0, 50)}...`}
-                        {project.description.length > 50 && (
-                          <span
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setExpandedProjects((prev) => ({
-                                ...prev,
-                                [project.id]: !prev[project.id],
-                              }));
-                            }}
-                            style={{
-                              marginLeft: 8,
-                              color: "#00aaff",
-                              cursor: "pointer",
-                              fontSize: 12,
-                            }}
-                          >
-                            {expandedProjects[project.id] ? "숨기기" : "더보기"}
-                          </span>
-                        )}
-                      </div>
-                    )}
-                  </span>
-                )}
-                <ActionGroup>
-                  {!showTrash && editingId !== project.id && (
-                    <PinButton onClick={() => startEdit(project)}>
-                      <Edit3 size={18} />
-                    </PinButton>
-                  )}
-                  {!showTrash && (
-                    <PinButton
-                      onClick={() =>
-                        togglePin(project.id, project.isPinned ?? false)
-                      }
-                    >
-                      {project.isPinned ? (
-                        <PinOff size={20} />
-                      ) : (
-                        <Pin size={20} />
-                      )}
-                    </PinButton>
-                  )}
-                  {!showTrash && project.userId === auth.currentUser?.uid && (
-                    <PinButton onClick={() => openShareModal(project.id)}>
-                      <UserPlus size={20} />
-                    </PinButton>
-                  )}
-                  {!showTrash &&
-                    (showArchive ? (
-                      <PinButton onClick={() => unarchiveProject(project.id)}>
-                        <ArchiveX size={20} />
-                      </PinButton>
-                    ) : (
-                      <PinButton onClick={() => archiveProject(project.id)}>
-                        <Archive size={20} />
-                      </PinButton>
-                    ))}
-                  {showTrash ? (
-                    <>
-                      <PinButton onClick={() => restoreProject(project.id)}>
-                        <Undo2 size={20} />
-                      </PinButton>
-                      <DeleteButton
-                        onClick={() => permanentlyDelete(project.id)}
-                      >
-                        <XCircle size={20} />
-                      </DeleteButton>
-                    </>
-                  ) : (
-                    <DeleteButton onClick={() => softDeleteProject(project.id)}>
-                      <Trash2 size={20} />
-                    </DeleteButton>
-                  )}
-                </ActionGroup>
-              </div>
-            </CardItem>
-          ))}
-        </CardGrid>
-      )}
+          <CardGrid>
+            {[...pinnedProjects, ...otherProjects].map((project) => (
+              <CardItem
+                key={project.id}
+                draggable={!project.isPinned}
+                onDragStart={() => handleDragStart(project.id)}
+                onDragOver={handleDragOver}
+                onDrop={() => handleDrop(project.id)}
+              >
+                <ProjectItemContent
+                  project={project}
+                  mode="card"
+                  isEditing={editingId === project.id}
+                  editingName={editingName}
+                  editingDescription={editingDescription}
+                  onNameChange={(e) => setEditingName(e.target.value)}
+                  onDescriptionChange={(e) => setEditingDescription(e.target.value)}
+                  onConfirmEdit={confirmEdit}
+                  onCancelEdit={cancelEdit}
+                  onProjectClick={handleProjectClick}
+                  isRecent={project.id === recentProjectId}
+                  expanded={!!expandedProjects[project.id]}
+                  onToggleExpand={() =>
+                    setExpandedProjects((prev) => ({
+                      ...prev,
+                      [project.id]: !prev[project.id],
+                    }))
+                  }
+                  startEdit={startEdit}
+                  togglePin={togglePin}
+                  openShareModal={openShareModal}
+                  archiveProject={archiveProject}
+                  unarchiveProject={unarchiveProject}
+                  restoreProject={restoreProject}
+                  permanentlyDelete={permanentlyDelete}
+                  softDeleteProject={softDeleteProject}
+                  showTrash={showTrash}
+                  showArchive={showArchive}
+                />
+              </CardItem>
+            ))}
+          </CardGrid>
+        )}
       {shareProjectId && (
         <ProjectShareModal
           users={users.filter((u) => u.uid !== auth.currentUser?.uid)}
