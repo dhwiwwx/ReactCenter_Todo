@@ -56,6 +56,8 @@ import {
   arrayUnion,
 } from "firebase/firestore";
 import ProjectShareModal from "./ProjectShareModal";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 interface Project {
   id: string;
@@ -256,8 +258,9 @@ const ProjectListPage = () => {
     if (
       projects.some((p) => p.id !== editingId && p.name === editingName.trim())
     ) {
-      setErrorMessage("동일한 이름의 프로젝트가 이미 존재합니다.");
-      alert("동일한 이름의 프로젝트가 이미 존재합니다.");
+      const message = "동일한 이름의 프로젝트가 이미 존재합니다.";
+      setErrorMessage(message);
+      toast.error(message);
       return;
     }
     await updateDoc(doc(db, "projects", editingId), {
@@ -277,7 +280,9 @@ const ProjectListPage = () => {
   const addProject = async () => {
     if (!newProjectName.trim()) return;
     if (projects.some((p) => p.name === newProjectName.trim())) {
-      setErrorMessage("동일한 이름의 프로젝트가 이미 존재합니다.");
+      const message = "동일한 이름의 프로젝트가 이미 존재합니다.";
+      setErrorMessage(message);
+      toast.error(message);
       return;
     }
     const uid = auth.currentUser?.uid;
@@ -745,6 +750,7 @@ const ProjectListPage = () => {
           onClose={() => setShareProjectId(null)}
         />
       )}
+      <ToastContainer position="top-center" autoClose={2500} />
     </Container>
   );
 };
