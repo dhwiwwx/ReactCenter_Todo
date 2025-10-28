@@ -12,7 +12,7 @@ const fadeIn = keyframes`
 `;
 
 export const Container = styled.div`
-  padding: 32px;
+  padding: clamp(20px, 5vw, 32px);
   min-height: 100vh;
   background-color: ${({ theme }) => theme.colors.background};
   color: #ffffff;
@@ -20,7 +20,7 @@ export const Container = styled.div`
 
 export const Title = styled.h2`
   margin-bottom: 20px;
-  font-size: 26px;
+  font-size: clamp(22px, 3vw, 26px);
   font-weight: 700;
 `;
 
@@ -36,9 +36,13 @@ export const CardGrid = styled.ul`
   padding: 0;
   margin-top: 16px;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 16px;
   animation: ${fadeIn} 0.3s ease;
+
+  @media (min-width: 1200px) {
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  }
 `;
 
 export const InputRow = styled.div`
@@ -49,6 +53,7 @@ export const InputRow = styled.div`
 
   @media (max-width: 768px) {
     flex-direction: column;
+    width: 100%;
   }
 `;
 
@@ -84,6 +89,10 @@ export const AddButton = styled.button`
   &:hover {
     background-color: ${({ theme }) => theme.colors.primaryHover};
   }
+
+  @media (max-width: 768px) {
+    width: 100%;
+  }
 `;
 
 export const ToggleButton = styled.button`
@@ -100,6 +109,10 @@ export const ToggleButton = styled.button`
   &:hover {
     background-color: ${({ theme }) => theme.colors.secondaryHover};
   }
+
+  @media (max-width: 768px) {
+    width: 100%;
+  }
 `;
 
 export const ProjectItem = styled.li`
@@ -114,6 +127,11 @@ export const ProjectItem = styled.li`
   font-size: 16px;
   animation: ${fadeIn} 0.3s ease;
   gap: 16px;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: stretch;
+  }
 
   span {
     cursor: pointer;
@@ -147,6 +165,10 @@ export const CardItem = styled.li`
     transform: scale(1.01);
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
   }
+
+  @media (max-width: 480px) {
+    padding: 14px;
+  }
 `;
 
 export const DeleteButton = styled.button`
@@ -168,6 +190,11 @@ export const ActionGroup = styled.div`
   display: flex;
   align-items: center;
   gap: 10px;
+
+  @media (max-width: 768px) {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
 `;
 
 export const PinButton = styled.button`
@@ -244,11 +271,23 @@ export const HeaderRow = styled.div`
   justify-content: space-between;
   align-items: center;
   margin-bottom: 24px;
+  gap: 12px;
+
+  @media (max-width: 900px) {
+    flex-direction: column;
+    align-items: stretch;
+  }
 `;
 
 export const HeaderActions = styled.div`
   display: flex;
   gap: 8px;
+
+  @media (max-width: 900px) {
+    width: 100%;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+  }
 `;
 
 export const StyledLogoutButton = styled.button`
@@ -264,6 +303,10 @@ export const StyledLogoutButton = styled.button`
   &:hover {
     background-color: ${({ theme }) => theme.colors.logoutHover};
   }
+
+  @media (max-width: 900px) {
+    flex: 1;
+  }
 `;
 
 export const ViewToggleButton = styled.button`
@@ -278,6 +321,10 @@ export const ViewToggleButton = styled.button`
 
   &:hover {
     background-color: ${({ theme }) => theme.colors.viewToggleHover};
+  }
+
+  @media (max-width: 900px) {
+    flex: 1;
   }
 `;
 

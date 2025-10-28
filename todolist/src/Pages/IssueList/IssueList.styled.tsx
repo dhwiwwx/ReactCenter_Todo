@@ -8,7 +8,7 @@ export const Container = styled.div`
 `;
 
 export const Title = styled.h1`
-  font-size: 32px;
+  font-size: clamp(24px, 5vw, 32px);
   color: #fff;
   font-weight: 300;
   text-align: center;
@@ -22,6 +22,12 @@ export const TopButtonRow = styled.div`
   padding: 0 30px;
   margin-top: 12px;
   margin-bottom: 20px;
+
+  @media (max-width: 900px) {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
 `;
 
 export const SearchRow = styled.div`
@@ -30,6 +36,11 @@ export const SearchRow = styled.div`
   justify-content: center;
   align-items: center;
   margin-bottom: 20px;
+
+  @media (max-width: 768px) {
+    flex-wrap: wrap;
+    padding: 0 16px;
+  }
 `;
 
 export const SearchInput = styled.input`
@@ -37,7 +48,7 @@ export const SearchInput = styled.input`
   border-radius: 8px;
   border: 1px solid ${({ theme }) => theme.colors.inputBorder};
   font-size: 14px;
-  width: 300px;
+  width: min(300px, 100%);
   background-color: ${({ theme }) => theme.colors.inputBg};
   color: white;
 
@@ -54,6 +65,10 @@ export const SortSelect = styled.select`
   background-color: ${({ theme }) => theme.colors.inputBg};
   color: white;
   cursor: pointer;
+
+  @media (max-width: 768px) {
+    width: 100%;
+  }
 `;
 
 export const GreenButton = styled.button`
@@ -69,6 +84,10 @@ export const GreenButton = styled.button`
   &:hover {
     background-color: #40c057;
   }
+
+  @media (max-width: 768px) {
+    width: 100%;
+  }
 `;
 
 export const ListBackground = styled.div`
@@ -79,6 +98,10 @@ export const ListBackground = styled.div`
   width: 90%;
   max-width: 1000px;
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+
+  @media (max-width: 768px) {
+    padding: 16px 12px;
+  }
 `;
 
 export const RedButton = styled(GreenButton)`
@@ -100,6 +123,10 @@ export const OutlineButton = styled.button`
   &:hover {
     background-color: rgba(255, 255, 255, 0.1);
   }
+
+  @media (max-width: 768px) {
+    width: 100%;
+  }
 `;
 
 export const BackButton = styled.button`
@@ -117,6 +144,11 @@ export const BackButton = styled.button`
   &:hover {
     background-color: ${({ theme }) => theme.colors.secondaryHover};
   }
+
+  @media (max-width: 768px) {
+    width: 100%;
+    justify-content: center;
+  }
 `;
 
 export const StyledLogoutButton = styled.button`
@@ -130,6 +162,10 @@ export const StyledLogoutButton = styled.button`
 
   &:hover {
     background-color: ${({ theme }) => theme.colors.logoutHover};
+  }
+
+  @media (max-width: 768px) {
+    width: 100%;
   }
 `;
 
@@ -145,6 +181,10 @@ export const StyledRegisterButton = styled.button`
   &:hover {
     background-color: ${({ theme }) => theme.colors.primaryHover};
   }
+
+  @media (max-width: 768px) {
+    width: 100%;
+  }
 `;
 
 export const List = styled.div`
@@ -154,6 +194,10 @@ export const List = styled.div`
   padding: 20px 0;
   max-width: 900px;
   margin: 0 auto;
+
+  @media (max-width: 768px) {
+    padding: 16px 0;
+  }
 `;
 
 export const Todo = styled.div`
@@ -168,6 +212,10 @@ export const Todo = styled.div`
   &:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+  }
+
+  @media (max-width: 480px) {
+    padding: 16px 18px;
   }
 `;
 

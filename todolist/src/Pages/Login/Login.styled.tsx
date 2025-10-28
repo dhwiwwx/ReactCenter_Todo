@@ -40,6 +40,11 @@ export const SubButtonRow = styled.div`
   justify-content: flex-end;
   gap: 8px;
   margin-top: 12px;
+
+  @media (max-width: 520px) {
+    flex-direction: column;
+    align-items: stretch;
+  }
 `;
 
 export const ErrorMessage = styled.div`
@@ -67,6 +72,10 @@ export const SNSButton = styled.button`
   &:hover {
     background-color: #e9ecef;
   }
+
+  @media (max-width: 520px) {
+    font-size: 13px;
+  }
 `;
 
 export const Container = styled.div`
@@ -75,18 +84,23 @@ export const Container = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
+  padding: clamp(16px, 6vw, 32px);
 `;
 
 export const LoginBox = styled.div`
   background-color: #2c2c54;
-  padding: 48px 36px;
+  padding: clamp(32px, 6vw, 48px) clamp(24px, 6vw, 36px);
   border-radius: 16px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  width: 380px;
+  width: min(380px, 100%);
   animation: ${slideUp} 0.6s ease-out;
+
+  @media (max-width: 480px) {
+    border-radius: 12px;
+  }
 `;
 
 export const LogoSection = styled.div`
@@ -97,14 +111,14 @@ export const LogoSection = styled.div`
 `;
 
 export const ServiceName = styled.h1`
-  font-size: 28px;
+  font-size: clamp(24px, 6vw, 28px);
   color: white;
   margin: 0;
   user-select: none;
 `;
 
 export const SubTitle = styled.p`
-  font-size: 14px;
+  font-size: clamp(13px, 4vw, 14px);
   color: #bbb;
   margin-top: 8px;
   user-select: none;
@@ -205,6 +219,10 @@ export const Button = styled.button`
     opacity: 0.6;
     cursor: not-allowed;
   }
+
+  @media (max-width: 520px) {
+    font-size: 15px;
+  }
 `;
 
 export const SubButton = styled.button`
@@ -228,6 +246,10 @@ export const SubButton = styled.button`
   &:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+  }
+
+  @media (max-width: 520px) {
+    font-size: 13px;
   }
 `;
 

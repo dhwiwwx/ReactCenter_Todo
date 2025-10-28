@@ -18,6 +18,7 @@ export const Container = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
+  padding: clamp(16px, 6vw, 32px);
 `;
 
 export const SignupBox = styled.div`
@@ -40,7 +41,7 @@ export const TitleWrapper = styled.div`
 `;
 
 export const Title = styled.h2`
-  font-size: 28px;
+  font-size: clamp(24px, 5vw, 28px);
   color: white;
   font-weight: bold;
   text-align: center;
@@ -48,7 +49,7 @@ export const Title = styled.h2`
 `;
 
 export const SubTitle = styled.p`
-  font-size: 14px;
+  font-size: clamp(13px, 4vw, 14px);
   color: #bbbbcc;
   text-align: center;
   margin-top: 10px;
