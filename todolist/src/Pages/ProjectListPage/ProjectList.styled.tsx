@@ -357,11 +357,3 @@ export const LoadingMessage = styled.div`
   padding: 40px;
   font-size: 18px;
 `;
-
-export const ProfileImage = styled.img`
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  cursor: pointer;
-  object-fit: cover;
-`;
