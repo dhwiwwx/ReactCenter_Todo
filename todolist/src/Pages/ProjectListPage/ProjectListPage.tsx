@@ -20,7 +20,6 @@ import {
   HeaderActions,
   ProjectCount,
   LoadingMessage,
-  ProfileImage,
 } from "./ProjectList.styled";
 import ProjectItemContent from "./ProjectItemContent";
 import { db, auth } from "../../Firebase/firebase";
@@ -28,7 +27,6 @@ import { signOut } from "firebase/auth";
 import {
   collection,
   getDocs,
-  getDoc,
   addDoc,
   updateDoc,
   deleteDoc,
@@ -57,35 +55,6 @@ export interface Project {
   order?: number;
   completionRate?: number;
 }
-
-const ProfileAvatar = ({ onClick }: { onClick: () => void }) => {
-  const [profileImage, setProfileImage] = useState<string>("");
-
-  useEffect(() => {
-    const fetchProfile = async () => {
-      const user = auth.currentUser;
-      if (!user) return;
-
-      try {
-        const docSnap = await getDoc(doc(db, "users", user.uid));
-        if (docSnap.exists()) {
-          setProfileImage(docSnap.data().profileImage || "");
-        }
-      } catch (error) {
-        console.error("프로필 이미지 로드 실패:", error);
-      }
-    };
-    fetchProfile();
-  }, []);
-
-  return (
-    <ProfileImage
-      src={profileImage || "https://placekitten.com/200/200"}
-      alt="프로필"
-      onClick={onClick}
-    />
-  );
-};
 
 const ProjectListPage = () => {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -429,7 +398,6 @@ const ProjectListPage = () => {
           <ViewToggleButton onClick={toggleViewMode}>
             {viewMode === "list" ? "카드형" : "리스트형"}
           </ViewToggleButton>
-          <ProfileAvatar onClick={() => navigate("/mypage")} />
           <StyledLogoutButton onClick={handleSignOut}>
             로그아웃
           </StyledLogoutButton>

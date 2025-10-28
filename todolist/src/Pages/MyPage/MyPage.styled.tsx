@@ -72,14 +72,6 @@ export const LogoutButton = styled.button`
   }
 `;
 
-export const ProfileImage = styled.img`
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  object-fit: cover;
-  margin-bottom: 16px;
-`;
-
 /* 🔹 추가: 카드 그리드/아이템 */
 export const CardGrid = styled.div`
   display: flex;

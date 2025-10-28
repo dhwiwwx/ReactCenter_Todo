@@ -18,7 +18,6 @@ import {
   CardItem,
   Title,
   InfoText,
-  ProfileImage,
   InputRow,
   TextInput,
   SaveButton,
@@ -28,8 +27,6 @@ import {
 
 function MyPage() {
   const [email, setEmail] = useState<string | null>(null);
-  const [profileImage, setProfileImage] = useState<string>("");
-  const [imageUrl, setImageUrl] = useState<string>("");
   const [newEmail, setNewEmail] = useState<string>("");
   const [currentPassword, setCurrentPassword] = useState<string>("");
   const [newPassword, setNewPassword] = useState<string>("");
@@ -47,28 +44,11 @@ function MyPage() {
       if (docSnap.exists()) {
         const data = docSnap.data();
         setEmail(data.email);
-        setProfileImage(data.profileImage || "");
       } else {
         setEmail(user.email);
       }
     });
   }, [navigate]);
-
-  const handleSaveImage = async () => {
-    const user = auth.currentUser;
-    if (!user) return;
-    try {
-      await setDoc(
-        doc(db, "users", user.uid),
-        { profileImage: imageUrl },
-        { merge: true }
-      );
-      setProfileImage(imageUrl);
-      toast.success("프로필 이미지가 변경되었습니다.");
-    } catch {
-      toast.error("이미지 저장 실패");
-    }
-  };
 
   const handleChangeEmail = async () => {
     const user = auth.currentUser;
@@ -134,21 +114,7 @@ function MyPage() {
       <Title>마이페이지</Title>
       <CardGrid>
         <CardItem>
-          <ProfileImage
-            src={profileImage || "https://placekitten.com/200/200"}
-            alt="프로필"
-          />
           <InfoText>이메일: {email}</InfoText>
-
-          <InputRow>
-            <TextInput
-              type="text"
-              placeholder="프로필 이미지 URL"
-              value={imageUrl}
-              onChange={(e) => setImageUrl(e.target.value)}
-            />
-            <SaveButton onClick={handleSaveImage}>이미지 저장</SaveButton>
-          </InputRow>
 
           <InputRow>
             <TextInput
