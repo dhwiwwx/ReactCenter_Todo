@@ -27,7 +27,7 @@ export const Backdrop = styled.div`
 export const Modal = styled.div`
   background: #1e1f2f;
   color: #ffffff;
-  padding: 32px;
+  padding: clamp(20px, 5vw, 32px);
   border-radius: 16px;
   width: 640px;
   max-width: 95%;
@@ -61,6 +61,15 @@ export const Field = styled.div`
     font-size: 15px;
     color: #ccc;
   }
+
+  @media (max-width: 600px) {
+    flex-direction: column;
+    gap: 4px;
+
+    .label {
+      width: auto;
+    }
+  }
 `;
 
 export const ButtonGroup = styled.div`
@@ -68,6 +77,10 @@ export const ButtonGroup = styled.div`
   justify-content: space-between;
   gap: 12px;
   margin-top: 24px;
+
+  @media (max-width: 600px) {
+    flex-direction: column;
+  }
 `;
 
 export const BaseButton = styled.button`

@@ -116,7 +116,7 @@ const ProjectItemContent: React.FC<ProjectItemContentProps> = ({
             color: "#aaa",
             whiteSpace: "pre-wrap",
             wordBreak: "break-word",
-            maxWidth: "500px",
+            maxWidth: "100%",
           }}
           onClick={(e) => e.stopPropagation()}
         >

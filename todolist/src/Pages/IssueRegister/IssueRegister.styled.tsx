@@ -5,24 +5,28 @@ export const RegisterContainer = styled.div`
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  padding-top: 60px;
   align-items: center;
   background-color: #22254b;
   color: #fff;
+  padding: clamp(32px, 6vw, 60px) 16px 60px;
 `;
 
 export const RegisterBox = styled.div`
   background-color: #373b69;
-  padding: 32px;
+  padding: clamp(24px, 5vw, 32px);
   border-radius: 16px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
   width: 90%;
   max-width: 640px;
+
+  @media (max-width: 480px) {
+    border-radius: 12px;
+  }
 `;
 
 export const RegisterTitle = styled.h1`
   margin-bottom: 28px;
-  font-size: 28px;
+  font-size: clamp(22px, 5vw, 28px);
   font-weight: 500;
   text-align: center;
 `;
@@ -81,6 +85,11 @@ export const ButtonGroup = styled.div`
   justify-content: flex-end;
   gap: 12px;
   margin-top: 12px;
+
+  @media (max-width: 600px) {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
 `;
 
 export const RegisterButton = styled.button`
@@ -98,6 +107,10 @@ export const RegisterButton = styled.button`
     opacity: 0.9;
     transform: translateY(-1px);
   }
+
+  @media (max-width: 600px) {
+    width: 100%;
+  }
 `;
 
 export const CancelButton = styled.button`
@@ -114,6 +127,10 @@ export const CancelButton = styled.button`
   &:hover {
     opacity: 0.9;
     transform: translateY(-1px);
+  }
+
+  @media (max-width: 600px) {
+    width: 100%;
   }
 `;
 
@@ -141,6 +158,10 @@ export const TagList = styled.div`
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+
+  @media (max-width: 480px) {
+    gap: 6px;
+  }
 `;
 
 export const Tag = styled.div`

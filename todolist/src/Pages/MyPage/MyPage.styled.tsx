@@ -1,9 +1,9 @@
 import styled from "styled-components";
 
 export const PageContainer = styled.div`
-  width: 100vw;
-  height: 100vh;
-  padding: 32px;
+  width: 100%;
+  min-height: 100vh;
+  padding: clamp(24px, 6vw, 48px) 16px;
   margin: 0;
   background-color: #1e1e3f;
   color: #ffffff;
@@ -13,7 +13,7 @@ export const PageContainer = styled.div`
   align-items: center;
 `;
 export const Title = styled.h2`
-  font-size: 28px;
+  font-size: clamp(24px, 5vw, 28px);
   margin-bottom: 20px;
 `;
 
@@ -27,6 +27,11 @@ export const ButtonGroup = styled.div`
   display: flex;
   gap: 16px;
   margin-top: 24px;
+
+  @media (max-width: 600px) {
+    flex-direction: column;
+    width: 100%;
+  }
 `;
 
 export const DeleteButton = styled.button`
@@ -41,6 +46,10 @@ export const DeleteButton = styled.button`
 
   &:hover {
     background-color: #c0392b;
+  }
+
+  @media (max-width: 600px) {
+    width: 100%;
   }
 `;
 
@@ -57,6 +66,10 @@ export const LogoutButton = styled.button`
   &:hover {
     background-color: #2c3e50;
   }
+
+  @media (max-width: 600px) {
+    width: 100%;
+  }
 `;
 
 export const ProfileImage = styled.img`
@@ -71,16 +84,21 @@ export const ProfileImage = styled.img`
 export const CardGrid = styled.div`
   display: flex;
   justify-content: center;
+  width: 100%;
 `;
 
 export const CardItem = styled.div`
   background: #252548;
-  padding: 32px;
+  padding: clamp(24px, 5vw, 32px);
   border-radius: 16px;
-  width: 400px;
+  width: min(400px, 100%);
   display: flex;
   flex-direction: column;
   align-items: center;
+
+  @media (max-width: 480px) {
+    border-radius: 12px;
+  }
 `;
 
 /* 🔹 추가: 입력창/버튼 */
@@ -89,6 +107,10 @@ export const InputRow = styled.div`
   gap: 8px;
   margin-bottom: 16px;
   width: 100%;
+
+  @media (max-width: 520px) {
+    flex-direction: column;
+  }
 `;
 
 export const TextInput = styled.input`
@@ -96,6 +118,10 @@ export const TextInput = styled.input`
   padding: 8px;
   border-radius: 8px;
   border: none;
+
+  @media (max-width: 520px) {
+    width: 100%;
+  }
 `;
 
 export const SaveButton = styled.button`
@@ -108,5 +134,9 @@ export const SaveButton = styled.button`
 
   &:hover {
     background-color: #2980b9;
+  }
+
+  @media (max-width: 520px) {
+    width: 100%;
   }
 `;
