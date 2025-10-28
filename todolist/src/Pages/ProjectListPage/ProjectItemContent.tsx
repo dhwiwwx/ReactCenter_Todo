@@ -9,17 +9,7 @@ import {
   ActionGroup,
   DeleteButton,
 } from "./ProjectList.styled";
-import {
-  Edit3,
-  Pin,
-  PinOff,
-  UserPlus,
-  Archive,
-  ArchiveX,
-  Undo2,
-  XCircle,
-  Trash2,
-} from "lucide-react";
+import { Edit3, Pin, PinOff, UserPlus, Trash2 } from "lucide-react";
 import { auth } from "../../Firebase/firebase";
 
 interface Project {
@@ -54,13 +44,7 @@ interface ProjectItemContentProps {
   startEdit: (project: Project) => void;
   togglePin: (id: string, isPinned: boolean) => void;
   openShareModal: (id: string) => void;
-  archiveProject: (id: string) => void;
-  unarchiveProject: (id: string) => void;
-  restoreProject: (id: string) => void;
   permanentlyDelete: (id: string) => void;
-  softDeleteProject: (id: string) => void;
-  showTrash: boolean;
-  showArchive: boolean;
 }
 
 const ProjectItemContent: React.FC<ProjectItemContentProps> = ({
@@ -80,13 +64,7 @@ const ProjectItemContent: React.FC<ProjectItemContentProps> = ({
   startEdit,
   togglePin,
   openShareModal,
-  archiveProject,
-  unarchiveProject,
-  restoreProject,
   permanentlyDelete,
-  softDeleteProject,
-  showTrash,
-  showArchive,
 }) => {
   const content = isEditing ? (
     <ProjectEditFields
@@ -146,45 +124,22 @@ const ProjectItemContent: React.FC<ProjectItemContentProps> = ({
 
   const actions = (
     <ActionGroup>
-      {!showTrash && !isEditing && (
+      {!isEditing && (
         <PinButton onClick={() => startEdit(project)}>
           <Edit3 size={18} />
         </PinButton>
       )}
-      {!showTrash && (
-        <PinButton onClick={() => togglePin(project.id, project.isPinned ?? false)}>
-          {project.isPinned ? <PinOff size={20} /> : <Pin size={20} />}
-        </PinButton>
-      )}
-      {!showTrash && project.userId === auth.currentUser?.uid && (
+      <PinButton onClick={() => togglePin(project.id, project.isPinned ?? false)}>
+        {project.isPinned ? <PinOff size={20} /> : <Pin size={20} />}
+      </PinButton>
+      {project.userId === auth.currentUser?.uid && (
         <PinButton onClick={() => openShareModal(project.id)}>
           <UserPlus size={20} />
         </PinButton>
       )}
-      {!showTrash &&
-        (showArchive ? (
-          <PinButton onClick={() => unarchiveProject(project.id)}>
-            <ArchiveX size={20} />
-          </PinButton>
-        ) : (
-          <PinButton onClick={() => archiveProject(project.id)}>
-            <Archive size={20} />
-          </PinButton>
-        ))}
-      {showTrash ? (
-        <>
-          <PinButton onClick={() => restoreProject(project.id)}>
-            <Undo2 size={20} />
-          </PinButton>
-          <DeleteButton onClick={() => permanentlyDelete(project.id)}>
-            <XCircle size={20} />
-          </DeleteButton>
-        </>
-      ) : (
-        <DeleteButton onClick={() => softDeleteProject(project.id)}>
-          <Trash2 size={20} />
-        </DeleteButton>
-      )}
+      <DeleteButton onClick={() => permanentlyDelete(project.id)}>
+        <Trash2 size={20} />
+      </DeleteButton>
     </ActionGroup>
   );
 
