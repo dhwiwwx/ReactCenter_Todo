@@ -11,7 +11,6 @@ import {
   InputRow,
   ProjectInput,
   AddButton,
-  ToggleButton,
   DescriptionInput,
   StyledLogoutButton,
   ViewToggleButton,
@@ -95,8 +94,6 @@ const ProjectListPage = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
   const [editingDescription, setEditingDescription] = useState("");
-  const [showTrash, setShowTrash] = useState(false);
-  const [showArchive, setShowArchive] = useState(false);
   const [search, setSearch] = useState("");
   const [recentProjectId, setRecentProjectId] = useState<string | null>(null);
   const [draggedId, setDraggedId] = useState<string | null>(null);
@@ -142,8 +139,8 @@ const ProjectListPage = () => {
     const projectQuery = query(
       collection(db, "projects"),
       where("memberIds", "array-contains", uid),
-      where("isDeleted", "==", showTrash),
-      where("isArchived", "==", showArchive)
+      where("isDeleted", "==", false),
+      where("isArchived", "==", false)
     );
     const unsubscribe = onSnapshot(
       projectQuery,
@@ -242,7 +239,7 @@ const ProjectListPage = () => {
   useEffect(() => {
     const unsubscribe = fetchProjects();
     return () => unsubscribe();
-  }, [showTrash, showArchive]);
+  }, []);
 
   useEffect(() => {
     fetchUsers();
@@ -323,75 +320,9 @@ const ProjectListPage = () => {
     { message: string; onConfirm: () => Promise<void> } | null
   >(null);
 
-  const softDeleteProject = (projectId: string) => {
-    setConfirmState({
-      message: "이 프로젝트를 휴지통으로 보내시겠어요?",
-      onConfirm: async () => {
-        try {
-          await updateDoc(doc(db, "projects", projectId), {
-            isDeleted: true,
-            deletedAt: new Date().toISOString(),
-          });
-        } catch (error) {
-          console.error("프로젝트 삭제 실패:", error);
-          setErrorMessage("프로젝트를 삭제하는 중 오류가 발생했습니다.");
-        }
-      },
-    });
-  };
-
-  const restoreProject = (projectId: string) => {
-    setConfirmState({
-      message: "이 프로젝트를 복원하시겠어요?",
-      onConfirm: async () => {
-        try {
-          await updateDoc(doc(db, "projects", projectId), {
-            isDeleted: false,
-            deletedAt: null,
-          });
-        } catch (error) {
-          console.error("프로젝트 복원 실패:", error);
-          setErrorMessage("프로젝트를 복원하는 중 오류가 발생했습니다.");
-        }
-      },
-    });
-  };
-
-  const archiveProject = (projectId: string) => {
-    setConfirmState({
-      message: "이 프로젝트를 보관하시겠어요?",
-      onConfirm: async () => {
-        try {
-          await updateDoc(doc(db, "projects", projectId), {
-            isArchived: true,
-          });
-        } catch (error) {
-          console.error("프로젝트 보관 실패:", error);
-          setErrorMessage("프로젝트를 보관하는 중 오류가 발생했습니다.");
-        }
-      },
-    });
-  };
-
-  const unarchiveProject = (projectId: string) => {
-    setConfirmState({
-      message: "이 프로젝트를 보관 해제하시겠어요?",
-      onConfirm: async () => {
-        try {
-          await updateDoc(doc(db, "projects", projectId), {
-            isArchived: false,
-          });
-        } catch (error) {
-          console.error("프로젝트 보관 해제 실패:", error);
-          setErrorMessage("프로젝트 보관 해제 중 오류가 발생했습니다.");
-        }
-      },
-    });
-  };
-
   const permanentlyDelete = (projectId: string) => {
     setConfirmState({
-      message: "정말로 완전히 삭제하시겠어요?",
+      message: "정말로 프로젝트를 삭제하시겠어요?",
       onConfirm: async () => {
         try {
           await deleteDoc(doc(db, "projects", projectId));
@@ -512,12 +443,6 @@ const ProjectListPage = () => {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
-        <ToggleButton onClick={() => setShowTrash((prev) => !prev)}>
-          {showTrash ? "📂 일반 보기" : "🗑️ 휴지통 보기"}
-        </ToggleButton>
-        <ToggleButton onClick={() => setShowArchive((prev) => !prev)}>
-          {showArchive ? "📁 프로젝트" : "📁 보관함"}
-        </ToggleButton>
       </InputRow>
 
       <InputRow>
@@ -576,13 +501,7 @@ const ProjectListPage = () => {
                   startEdit={startEdit}
                   togglePin={togglePin}
                   openShareModal={openShareModal}
-                  archiveProject={archiveProject}
-                  unarchiveProject={unarchiveProject}
-                  restoreProject={restoreProject}
                   permanentlyDelete={permanentlyDelete}
-                  softDeleteProject={softDeleteProject}
-                  showTrash={showTrash}
-                  showArchive={showArchive}
                 />
               </ProjectItem>
             ))}
@@ -619,13 +538,7 @@ const ProjectListPage = () => {
                   startEdit={startEdit}
                   togglePin={togglePin}
                   openShareModal={openShareModal}
-                  archiveProject={archiveProject}
-                  unarchiveProject={unarchiveProject}
-                  restoreProject={restoreProject}
                   permanentlyDelete={permanentlyDelete}
-                  softDeleteProject={softDeleteProject}
-                  showTrash={showTrash}
-                  showArchive={showArchive}
                 />
               </CardItem>
             ))}
