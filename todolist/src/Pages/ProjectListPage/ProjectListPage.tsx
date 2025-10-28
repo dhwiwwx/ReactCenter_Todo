@@ -11,7 +11,6 @@ import {
   InputRow,
   ProjectInput,
   AddButton,
-  ToggleButton,
   DescriptionInput,
   StyledLogoutButton,
   ViewToggleButton,
@@ -21,7 +20,6 @@ import {
   HeaderActions,
   ProjectCount,
   LoadingMessage,
-  ProfileImage,
 } from "./ProjectList.styled";
 import ProjectItemContent from "./ProjectItemContent";
 import { db, auth } from "../../Firebase/firebase";
@@ -29,7 +27,6 @@ import { signOut } from "firebase/auth";
 import {
   collection,
   getDocs,
-  getDoc,
   addDoc,
   updateDoc,
   deleteDoc,
@@ -52,41 +49,10 @@ export interface Project {
   description?: string;
   issueCount?: number;
   isPinned?: boolean;
-  isDeleted?: boolean;
-  isArchived?: boolean;
   lastViewedAt?: string;
   order?: number;
   completionRate?: number;
 }
-
-const ProfileAvatar = ({ onClick }: { onClick: () => void }) => {
-  const [profileImage, setProfileImage] = useState<string>("");
-
-  useEffect(() => {
-    const fetchProfile = async () => {
-      const user = auth.currentUser;
-      if (!user) return;
-
-      try {
-        const docSnap = await getDoc(doc(db, "users", user.uid));
-        if (docSnap.exists()) {
-          setProfileImage(docSnap.data().profileImage || "");
-        }
-      } catch (error) {
-        console.error("프로필 이미지 로드 실패:", error);
-      }
-    };
-    fetchProfile();
-  }, []);
-
-  return (
-    <ProfileImage
-      src={profileImage || "https://placekitten.com/200/200"}
-      alt="프로필"
-      onClick={onClick}
-    />
-  );
-};
 
 const ProjectListPage = () => {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -95,8 +61,6 @@ const ProjectListPage = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
   const [editingDescription, setEditingDescription] = useState("");
-  const [showTrash, setShowTrash] = useState(false);
-  const [showArchive, setShowArchive] = useState(false);
   const [search, setSearch] = useState("");
   const [recentProjectId, setRecentProjectId] = useState<string | null>(null);
   const [draggedId, setDraggedId] = useState<string | null>(null);
@@ -141,9 +105,7 @@ const ProjectListPage = () => {
     }
     const projectQuery = query(
       collection(db, "projects"),
-      where("memberIds", "array-contains", uid),
-      where("isDeleted", "==", showTrash),
-      where("isArchived", "==", showArchive)
+      where("memberIds", "array-contains", uid)
     );
     const unsubscribe = onSnapshot(
       projectQuery,
@@ -153,6 +115,12 @@ const ProjectListPage = () => {
             projectSnapshot.docs.map(async (docSnap) => {
               const projectId = docSnap.id;
               const data = docSnap.data();
+              const isDeleted = (data as any).isDeleted ?? false;
+              const isArchived = (data as any).isArchived ?? false;
+              if (isDeleted || isArchived) {
+                return null;
+              }
+
               const q = query(
                 collection(db, "issues"),
                 where("projectId", "==", projectId)
@@ -179,15 +147,17 @@ const ProjectListPage = () => {
                 issueCount,
                 completionRate,
                 isPinned: data.isPinned || false,
-                isDeleted: data.isDeleted || false,
-                isArchived: data.isArchived || false,
                 lastViewedAt: data.lastViewedAt || null,
                 order: data.order ?? 0,
               } as Project;
             })
           );
 
-          const sorted = data.sort((a, b) => {
+          const activeProjects = data.filter(
+            (project): project is Project => project !== null
+          );
+
+          const sorted = activeProjects.sort((a, b) => {
             if (a.isPinned && !b.isPinned) return -1;
             if (!a.isPinned && b.isPinned) return 1;
             if (a.order !== undefined && b.order !== undefined) {
@@ -242,7 +212,7 @@ const ProjectListPage = () => {
   useEffect(() => {
     const unsubscribe = fetchProjects();
     return () => unsubscribe();
-  }, [showTrash, showArchive]);
+  }, []);
 
   useEffect(() => {
     fetchUsers();
@@ -323,81 +293,15 @@ const ProjectListPage = () => {
     { message: string; onConfirm: () => Promise<void> } | null
   >(null);
 
-  const softDeleteProject = (projectId: string) => {
+  const deleteProject = (projectId: string) => {
     setConfirmState({
-      message: "이 프로젝트를 휴지통으로 보내시겠어요?",
-      onConfirm: async () => {
-        try {
-          await updateDoc(doc(db, "projects", projectId), {
-            isDeleted: true,
-            deletedAt: new Date().toISOString(),
-          });
-        } catch (error) {
-          console.error("프로젝트 삭제 실패:", error);
-          setErrorMessage("프로젝트를 삭제하는 중 오류가 발생했습니다.");
-        }
-      },
-    });
-  };
-
-  const restoreProject = (projectId: string) => {
-    setConfirmState({
-      message: "이 프로젝트를 복원하시겠어요?",
-      onConfirm: async () => {
-        try {
-          await updateDoc(doc(db, "projects", projectId), {
-            isDeleted: false,
-            deletedAt: null,
-          });
-        } catch (error) {
-          console.error("프로젝트 복원 실패:", error);
-          setErrorMessage("프로젝트를 복원하는 중 오류가 발생했습니다.");
-        }
-      },
-    });
-  };
-
-  const archiveProject = (projectId: string) => {
-    setConfirmState({
-      message: "이 프로젝트를 보관하시겠어요?",
-      onConfirm: async () => {
-        try {
-          await updateDoc(doc(db, "projects", projectId), {
-            isArchived: true,
-          });
-        } catch (error) {
-          console.error("프로젝트 보관 실패:", error);
-          setErrorMessage("프로젝트를 보관하는 중 오류가 발생했습니다.");
-        }
-      },
-    });
-  };
-
-  const unarchiveProject = (projectId: string) => {
-    setConfirmState({
-      message: "이 프로젝트를 보관 해제하시겠어요?",
-      onConfirm: async () => {
-        try {
-          await updateDoc(doc(db, "projects", projectId), {
-            isArchived: false,
-          });
-        } catch (error) {
-          console.error("프로젝트 보관 해제 실패:", error);
-          setErrorMessage("프로젝트 보관 해제 중 오류가 발생했습니다.");
-        }
-      },
-    });
-  };
-
-  const permanentlyDelete = (projectId: string) => {
-    setConfirmState({
-      message: "정말로 완전히 삭제하시겠어요?",
+      message: "정말로 이 프로젝트를 삭제하시겠어요?",
       onConfirm: async () => {
         try {
           await deleteDoc(doc(db, "projects", projectId));
         } catch (error) {
-          console.error("프로젝트 완전 삭제 실패:", error);
-          setErrorMessage("프로젝트를 완전히 삭제하는 중 오류가 발생했습니다.");
+          console.error("프로젝트 삭제 실패:", error);
+          setErrorMessage("프로젝트를 삭제하는 중 오류가 발생했습니다.");
         }
       },
     });
@@ -498,7 +402,6 @@ const ProjectListPage = () => {
           <ViewToggleButton onClick={toggleViewMode}>
             {viewMode === "list" ? "카드형" : "리스트형"}
           </ViewToggleButton>
-          <ProfileAvatar onClick={() => navigate("/mypage")} />
           <StyledLogoutButton onClick={handleSignOut}>
             로그아웃
           </StyledLogoutButton>
@@ -512,12 +415,6 @@ const ProjectListPage = () => {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
-        <ToggleButton onClick={() => setShowTrash((prev) => !prev)}>
-          {showTrash ? "📂 일반 보기" : "🗑️ 휴지통 보기"}
-        </ToggleButton>
-        <ToggleButton onClick={() => setShowArchive((prev) => !prev)}>
-          {showArchive ? "📁 프로젝트" : "📁 보관함"}
-        </ToggleButton>
       </InputRow>
 
       <InputRow>
@@ -576,13 +473,7 @@ const ProjectListPage = () => {
                   startEdit={startEdit}
                   togglePin={togglePin}
                   openShareModal={openShareModal}
-                  archiveProject={archiveProject}
-                  unarchiveProject={unarchiveProject}
-                  restoreProject={restoreProject}
-                  permanentlyDelete={permanentlyDelete}
-                  softDeleteProject={softDeleteProject}
-                  showTrash={showTrash}
-                  showArchive={showArchive}
+                  deleteProject={deleteProject}
                 />
               </ProjectItem>
             ))}
@@ -619,13 +510,7 @@ const ProjectListPage = () => {
                   startEdit={startEdit}
                   togglePin={togglePin}
                   openShareModal={openShareModal}
-                  archiveProject={archiveProject}
-                  unarchiveProject={unarchiveProject}
-                  restoreProject={restoreProject}
-                  permanentlyDelete={permanentlyDelete}
-                  softDeleteProject={softDeleteProject}
-                  showTrash={showTrash}
-                  showArchive={showArchive}
+                  deleteProject={deleteProject}
                 />
               </CardItem>
             ))}

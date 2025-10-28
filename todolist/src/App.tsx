@@ -7,7 +7,6 @@ import IssueRegister from "./Pages/IssueRegister/IssueRegister";
 import IssueEdit from "./Pages/IssueEdit/IssueEdit";
 import ProjectListPage from "./Pages/ProjectListPage/ProjectListPage";
 import IssueList from "./Pages/IssueList/IssueList";
-import MyPage from "./Pages/MyPage/MyPage"; // ✅ 추가
 import NotFound from "./Pages/NotFound/NotFound";
 import { auth } from "./Firebase/firebase";
 import { useAuthState } from "react-firebase-hooks/auth";
@@ -55,11 +54,6 @@ function App() {
           element={user ? <IssueEdit /> : <Navigate to="/login" />}
         />
 
-        {/* ✅ 마이페이지 추가 */}
-        <Route
-          path="/mypage"
-          element={user ? <MyPage /> : <Navigate to="/login" />}
-        />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
