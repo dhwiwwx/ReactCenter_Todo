@@ -56,6 +56,7 @@ import {
 import IssueDetailModal from "./IssueDetailModal";
 import { Circles } from "react-loader-spinner";
 import { logActivity } from "../../utils/activity";
+import { useProjectView } from "../../context/ProjectViewContext";
 
 interface Issue {
   id: string;
@@ -93,7 +94,7 @@ function IssueList() {
   const LOAD_INCREMENT = 10;
   const [visibleCount, setVisibleCount] = useState(LOAD_INCREMENT);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
-  const [viewMode, setViewMode] = useState<"list" | "kanban">("list");
+  const { viewMode, setViewMode } = useProjectView();
   const [draggedIssueId, setDraggedIssueId] = useState<string | null>(null);
   const [dragOverStatus, setDragOverStatus] = useState<CoreStatus | null>(null);
   const [projectMembers, setProjectMembers] = useState<string[]>([]);

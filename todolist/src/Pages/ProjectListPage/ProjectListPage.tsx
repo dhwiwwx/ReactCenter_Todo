@@ -447,7 +447,7 @@ const ProjectListPage = () => {
       await updateDoc(doc(db, "projects", projectId), {
         lastViewedAt: new Date().toISOString(),
       });
-      navigate(`/projects/${projectId}/issues`);
+      navigate(`/projects/${projectId}/dashboard`);
     } catch (error) {
       console.error("프로젝트 이동 실패:", error);
       setErrorMessage("프로젝트를 여는 중 오류가 발생했습니다.");
