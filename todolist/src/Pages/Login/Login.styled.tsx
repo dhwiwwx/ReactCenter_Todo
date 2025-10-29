@@ -47,11 +47,12 @@ export const SubButtonRow = styled.div`
   }
 `;
 
-export const ErrorMessage = styled.div`
+export const StatusMessage = styled.div<{ variant: "error" | "success" }>`
   margin-top: 12px;
-  color: #fa5252;
+  color: ${({ variant }) => (variant === "error" ? "#fa5252" : "#4fa94d")};
   font-size: 14px;
   animation: ${fadeIn} 0.3s ease-in-out;
+  text-align: center;
 `;
 
 export const SNSButton = styled.button`
