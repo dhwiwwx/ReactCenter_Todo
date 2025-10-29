@@ -40,6 +40,8 @@ import {
   ActivityItem,
   ActivityTitle,
   ActivityMeta,
+  NotificationButton,
+  NotificationBadge,
 } from "./ProjectList.styled";
 import ProjectItemContent from "./ProjectItemContent";
 import { db, auth } from "../../Firebase/firebase";
@@ -60,6 +62,8 @@ import ProjectShareModal from "./ProjectShareModal";
 import ConfirmModal from "./ConfirmModal";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { Bell } from "lucide-react";
+import ActivityFeed from "../../components/ActivityFeed/ActivityFeed";
 
 export interface Project {
   id: string;
@@ -98,6 +102,8 @@ const ProjectListPage = () => {
     []
   );
   const [shareProjectId, setShareProjectId] = useState<string | null>(null);
+  const [isActivityOpen, setIsActivityOpen] = useState(false);
+  const [unreadActivityCount, setUnreadActivityCount] = useState(0);
 
   const navigate = useNavigate();
 
@@ -603,11 +609,23 @@ const ProjectListPage = () => {
         </DashboardSplit>
       </DashboardSection>
       <HeaderRow>
-          <Title>
-            📁 프로젝트 목록{" "}
-            <ProjectCount>({filteredProjects.length}개)</ProjectCount>
-          </Title>
+        <Title>
+          📁 프로젝트 목록{" "}
+          <ProjectCount>({filteredProjects.length}개)</ProjectCount>
+        </Title>
         <HeaderActions>
+          <NotificationButton
+            type="button"
+            aria-label="활동 알림 열기"
+            onClick={() => setIsActivityOpen(true)}
+          >
+            <Bell size={18} />
+            {unreadActivityCount > 0 && (
+              <NotificationBadge>
+                {unreadActivityCount > 99 ? "99+" : unreadActivityCount}
+              </NotificationBadge>
+            )}
+          </NotificationButton>
           <ViewToggleButton onClick={toggleViewMode}>
             {viewMode === "list" ? "카드형" : "리스트형"}
           </ViewToggleButton>
@@ -742,6 +760,13 @@ const ProjectListPage = () => {
           onCancel={() => setConfirmState(null)}
         />
       )}
+      <ActivityFeed
+        isOpen={isActivityOpen}
+        onClose={() => setIsActivityOpen(false)}
+        currentUserId={auth.currentUser?.uid}
+        projectIds={projects.map((project) => project.id)}
+        onUnreadChange={setUnreadActivityCount}
+      />
       <ToastContainer position="top-center" autoClose={2500} />
     </Container>
   );
