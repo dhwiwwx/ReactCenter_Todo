@@ -439,6 +439,48 @@ export const HeaderActions = styled.div`
   }
 `;
 
+export const NotificationButton = styled.button`
+  position: relative;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 153, 219, 0.6);
+  background: rgba(39, 44, 105, 0.85);
+  color: #dbe0ff;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+
+  &:hover {
+    background: rgba(95, 101, 191, 0.9);
+    transform: translateY(-1px);
+  }
+
+  &:focus-visible {
+    outline: 2px solid ${({ theme }) => theme.colors.primary};
+    outline-offset: 2px;
+  }
+`;
+
+export const NotificationBadge = styled.span`
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: ${({ theme }) => theme.colors.danger};
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+
 export const StyledLogoutButton = styled.button`
   padding: 10px 14px;
   background-color: ${({ theme }) => theme.colors.logoutBg};

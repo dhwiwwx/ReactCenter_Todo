@@ -21,6 +21,7 @@ import {
 } from "./IssueDetailModal.styled";
 import { db, auth } from "../../Firebase/firebase";
 import { doc, updateDoc, arrayUnion } from "firebase/firestore";
+import { logActivity } from "../../utils/activity";
 
 interface Comment {
   id: string;
@@ -42,6 +43,7 @@ interface Issue {
   status?: string;
   comments?: Comment[];
   tags?: string[];
+  projectId?: string;
 }
 
 interface Props {
@@ -49,7 +51,8 @@ interface Props {
   onClose: () => void;
   onEdit: (id: string, issue: Issue) => void;
   onDelete: (id: string) => void;
-  onStatusChange?: () => void;
+  onStatusChange?: (newStatus: string, previousStatus: string) => void;
+  projectMembers?: string[];
 }
 
 export default function IssueDetailModal({
@@ -58,6 +61,7 @@ export default function IssueDetailModal({
   onEdit,
   onDelete,
   onStatusChange,
+  projectMembers = [],
 }: Props) {
   const [status, setStatus] = useState(issue.status || "할 일");
   const [comments, setComments] = useState<Comment[]>(issue.comments || []);
@@ -105,9 +109,10 @@ export default function IssueDetailModal({
 
   const handleStatusChange = async (newStatus: string) => {
     try {
+      const previousStatus = status;
       await updateDoc(doc(db, "issues", issue.id), { status: newStatus });
       setStatus(newStatus);
-      onStatusChange?.();
+      onStatusChange?.(newStatus, previousStatus);
     } catch (err) {
       alert("상태 변경 실패");
       console.error(err);
@@ -115,10 +120,11 @@ export default function IssueDetailModal({
   };
 
   const handleAddComment = async () => {
-    if (!comment.trim() || !currentUser) return;
+    const trimmed = comment.trim();
+    if (!trimmed || !currentUser) return;
     const newComment = {
       id: crypto.randomUUID(),
-      text: comment,
+      text: trimmed,
       createdAt: new Date().toISOString(),
       authorId: currentUser.uid,
     };
@@ -127,22 +133,74 @@ export default function IssueDetailModal({
     });
     setComments((prev) => [...prev, newComment]);
     setComment("");
+
+    if (issue.projectId) {
+      const actorName = currentUser.displayName || currentUser.email || "사용자";
+      const snippet =
+        trimmed.length > 60 ? `${trimmed.slice(0, 57)}…` : trimmed;
+      await logActivity({
+        projectId: issue.projectId,
+        issueId: issue.id,
+        type: "comment_added",
+        message: `${actorName}님이 댓글을 추가했습니다: "${snippet}"`,
+        actorId: currentUser.uid,
+        actorEmail: currentUser.email,
+        actorName,
+        targetUserIds: projectMembers,
+        metadata: { commentId: newComment.id },
+      });
+    }
   };
 
   const handleDeleteComment = async (id: string) => {
+    const deletedComment = comments.find((c) => c.id === id);
     const filtered = comments.filter((c) => c.id !== id);
     await updateDoc(doc(db, "issues", issue.id), { comments: filtered });
     setComments(filtered);
+
+    if (issue.projectId && currentUser) {
+      const actorName = currentUser.displayName || currentUser.email || "사용자";
+      await logActivity({
+        projectId: issue.projectId,
+        issueId: issue.id,
+        type: "comment_deleted",
+        message: `${actorName}님이 댓글을 삭제했습니다.`,
+        actorId: currentUser.uid,
+        actorEmail: currentUser.email,
+        actorName,
+        targetUserIds: projectMembers,
+        metadata: { commentId: id, deletedText: deletedComment?.text ?? null },
+      });
+    }
   };
 
   const handleEditComment = async (id: string) => {
+    const trimmed = editText.trim();
+    if (!trimmed) return;
     const updated = comments.map((c) =>
-      c.id === id ? { ...c, text: editText } : c
+      c.id === id ? { ...c, text: trimmed } : c
     );
     await updateDoc(doc(db, "issues", issue.id), { comments: updated });
     setComments(updated);
     setEditIndex(null);
     setEditText("");
+
+    if (issue.projectId && currentUser) {
+      const actorName = currentUser.displayName || currentUser.email || "사용자";
+      const snippet =
+        trimmed.length > 60 ? `${trimmed.slice(0, 57)}…` : trimmed;
+      await logActivity({
+        projectId: issue.projectId,
+        issueId: issue.id,
+        type: "comment_updated",
+        message: `${actorName}님이 댓글을 수정했습니다: "${snippet}"`,
+        actorId: currentUser.uid,
+        actorEmail: currentUser.email,
+        actorName,
+        targetUserIds: projectMembers,
+        metadata: { commentId: id },
+      });
+    }
   };
 
   return (

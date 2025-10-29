@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import Select, { SingleValue } from "react-select";
+import Select from "react-select";
 import {
   RegisterContainer,
   RegisterBox,
@@ -17,10 +17,18 @@ import {
   TagWrapper,
 } from "./IssueRegister.styled";
 import { db, auth } from "../../Firebase/firebase";
-import { collection, addDoc, Timestamp, getDocs } from "firebase/firestore";
+import {
+  collection,
+  addDoc,
+  Timestamp,
+  getDocs,
+  doc,
+  getDoc,
+} from "firebase/firestore";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { logActivity } from "../../utils/activity";
 
 interface OptionType {
   value: string;
@@ -41,6 +49,8 @@ function IssueRegister() {
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState<string>("");
   const [userSuggestions, setUserSuggestions] = useState<OptionType[]>([]);
+  const [projectMembers, setProjectMembers] = useState<string[]>([]);
+  const [projectName, setProjectName] = useState<string>("");
 
   const navigate = useNavigate();
 
@@ -124,6 +134,26 @@ function IssueRegister() {
     fetchUsers();
   }, []);
 
+  useEffect(() => {
+    const fetchProjectMembers = async () => {
+      if (!projectId) return;
+      const projectSnap = await getDoc(doc(db, "projects", projectId));
+      if (!projectSnap.exists()) return;
+      const data = projectSnap.data() as {
+        memberIds?: string[];
+        userId?: string;
+        name?: string;
+      };
+      const participants = new Set<string>();
+      if (data.userId) participants.add(data.userId);
+      (data.memberIds ?? []).forEach((memberId) => participants.add(memberId));
+      if (auth.currentUser?.uid) participants.add(auth.currentUser.uid);
+      setProjectMembers(Array.from(participants));
+      setProjectName(data.name ?? "");
+    };
+    fetchProjectMembers();
+  }, [projectId]);
+
   const handleTagInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "," || e.key === "Enter") {
       e.preventDefault();
@@ -150,8 +180,14 @@ function IssueRegister() {
       return;
     }
 
+    if (!projectId) {
+      toast.error("프로젝트 정보가 없습니다.");
+      return;
+    }
+
     try {
-      await addDoc(collection(db, "issues"), {
+      const currentUser = auth.currentUser;
+      const docRef = await addDoc(collection(db, "issues"), {
         title,
         reporter,
         description,
@@ -165,6 +201,24 @@ function IssueRegister() {
         createdAtFormatted,
         status: "할 일",
       });
+      if (currentUser) {
+        const actorName = currentUser.displayName || currentUser.email || "사용자";
+        await logActivity({
+          projectId,
+          issueId: docRef.id,
+          type: "issue_created",
+          message: `${actorName}님이 "${title}" 이슈를 생성했습니다.`,
+          actorId: currentUser.uid,
+          actorEmail: currentUser.email,
+          actorName,
+          targetUserIds: projectMembers,
+          metadata: {
+            priority,
+            deadline: deadline?.toISOString() ?? null,
+            projectName,
+          },
+        });
+      }
       toast.success("이슈가 성공적으로 등록되었습니다.");
       setTimeout(() => navigate(`/projects/${projectId}/issues`), 1500);
     } catch (error) {

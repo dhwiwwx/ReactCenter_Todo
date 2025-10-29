@@ -39,7 +39,6 @@ import {
   KanbanCard,
   KanbanEmpty,
 } from "./IssueList.styled";
-import styled from "styled-components";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { signOut } from "firebase/auth";
@@ -56,6 +55,7 @@ import {
 } from "firebase/firestore";
 import IssueDetailModal from "./IssueDetailModal";
 import { Circles } from "react-loader-spinner";
+import { logActivity } from "../../utils/activity";
 
 interface Issue {
   id: string;
@@ -70,6 +70,7 @@ interface Issue {
   status?: string;
   comments?: Comment[];
   tags?: string[];
+  projectId?: string;
 }
 interface Comment {
   id: string;
@@ -95,8 +96,31 @@ function IssueList() {
   const [viewMode, setViewMode] = useState<"list" | "kanban">("list");
   const [draggedIssueId, setDraggedIssueId] = useState<string | null>(null);
   const [dragOverStatus, setDragOverStatus] = useState<CoreStatus | null>(null);
+  const [projectMembers, setProjectMembers] = useState<string[]>([]);
+  const [projectName, setProjectName] = useState<string>("");
   const navigate = useNavigate();
   const { projectId } = useParams<{ projectId: string }>();
+
+  useEffect(() => {
+    if (!projectId) return;
+    const projectRef = doc(db, "projects", projectId);
+    const unsubscribe = onSnapshot(projectRef, (snapshot) => {
+      const data = snapshot.data() as
+        | { name?: string; userId?: string; memberIds?: string[] }
+        | undefined;
+      if (!data) return;
+      const participantSet = new Set<string>();
+      if (data.userId) participantSet.add(data.userId);
+      (data.memberIds ?? []).forEach((memberId) => participantSet.add(memberId));
+      if (auth.currentUser?.uid) {
+        participantSet.add(auth.currentUser.uid);
+      }
+      setProjectMembers(Array.from(participantSet));
+      setProjectName(data.name ?? "");
+    });
+
+    return () => unsubscribe();
+  }, [projectId]);
 
   const normalizeStatus = (status?: string): CoreStatus => {
     if (STATUS_ORDER.includes(status as CoreStatus)) {
@@ -159,19 +183,71 @@ function IssueList() {
   };
   const handleDeleteIssue = async (id: string) => {
     if (!window.confirm("정말 삭제할까요?")) return;
+    const issueToDelete = issues.find((issue) => issue.id === id);
     await deleteDoc(doc(db, "issues", id));
     setIssues((prev) => prev.filter((i) => i.id !== id));
     setSelectedIssue(null);
+
+    const currentUser = auth.currentUser;
+    if (projectId && currentUser) {
+      const actorName = currentUser.displayName || currentUser.email || "사용자";
+      await logActivity({
+        projectId,
+        issueId: id,
+        type: "issue_deleted",
+        message: `${actorName}님이 "${
+          issueToDelete?.title ?? "이슈"
+        }" 이슈를 삭제했습니다.`,
+        actorId: currentUser.uid,
+        actorEmail: currentUser.email,
+        actorName,
+        targetUserIds: projectMembers,
+        metadata: {
+          issueTitle: issueToDelete?.title ?? null,
+        },
+      });
+    }
   };
 
-  const handleStatusChange = async (id: string, newStatus: CoreStatus) => {
+  const handleStatusChange = async (
+    id: string,
+    newStatus: CoreStatus,
+    previousStatus?: CoreStatus
+  ) => {
+    const issue = issues.find((item) => item.id === id);
+    const fromStatus = previousStatus ?? normalizeStatus(issue?.status);
+    if (fromStatus === newStatus) {
+      return;
+    }
+
     setIssues((prev) =>
-      prev.map((issue) =>
-        issue.id === id ? { ...issue, status: newStatus } : issue
+      prev.map((item) =>
+        item.id === id ? { ...item, status: newStatus } : item
       )
     );
     try {
       await updateDoc(doc(db, "issues", id), { status: newStatus });
+      const currentUser = auth.currentUser;
+      if (projectId && currentUser) {
+        const actorName = currentUser.displayName || currentUser.email || "사용자";
+        await logActivity({
+          projectId,
+          issueId: id,
+          type: "issue_status_changed",
+          message: `${actorName}님이 "${
+            issue?.title ?? "이슈"
+          }" 상태를 ${fromStatus}에서 ${newStatus}(으)로 변경했습니다.`,
+          actorId: currentUser.uid,
+          actorEmail: currentUser.email,
+          actorName,
+          targetUserIds: projectMembers,
+          metadata: {
+            from: fromStatus,
+            to: newStatus,
+            projectName,
+          },
+        });
+      }
     } catch (error) {
       console.error("이슈 상태 변경 실패:", error);
     }
@@ -179,7 +255,14 @@ function IssueList() {
 
   const handleDropOnColumn = async (status: CoreStatus) => {
     if (!draggedIssueId) return;
-    await handleStatusChange(draggedIssueId, status);
+    const draggedIssue = issues.find((issue) => issue.id === draggedIssueId);
+    if (!draggedIssue) {
+      setDraggedIssueId(null);
+      setDragOverStatus(null);
+      return;
+    }
+    const prevStatus = normalizeStatus(draggedIssue.status);
+    await handleStatusChange(draggedIssueId, status, prevStatus);
     setDraggedIssueId(null);
     setDragOverStatus(null);
   };
@@ -492,6 +575,14 @@ function IssueList() {
           onClose={handleCloseModal}
           onEdit={(id) => handleEditIssue(id, selectedIssue)}
           onDelete={handleDeleteIssue}
+          projectMembers={projectMembers}
+          onStatusChange={(nextStatus, previousStatus) =>
+            handleStatusChange(
+              selectedIssue.id,
+              nextStatus as CoreStatus,
+              previousStatus as CoreStatus
+            )
+          }
         />
       )}
     </Container>
