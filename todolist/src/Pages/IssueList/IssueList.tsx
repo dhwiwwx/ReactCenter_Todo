@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Container,
   List,
@@ -28,6 +28,16 @@ import {
   CommentCount,
   Tag,
   OutlineButton,
+  ViewToggleButton,
+  BoardWrapper,
+  KanbanContainer,
+  KanbanColumn,
+  KanbanHeader,
+  KanbanTitle,
+  KanbanCount,
+  KanbanList,
+  KanbanCard,
+  KanbanEmpty,
 } from "./IssueList.styled";
 import styled from "styled-components";
 import { ArrowLeft } from "lucide-react";
@@ -42,6 +52,7 @@ import {
   deleteDoc,
   doc,
   where,
+  updateDoc,
 } from "firebase/firestore";
 import IssueDetailModal from "./IssueDetailModal";
 import { Circles } from "react-loader-spinner";
@@ -67,6 +78,9 @@ interface Comment {
   authorId: string;
 }
 
+const STATUS_ORDER = ["할 일", "진행 중", "완료"] as const;
+type CoreStatus = (typeof STATUS_ORDER)[number];
+
 function IssueList() {
   const [issues, setIssues] = useState<Issue[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -78,8 +92,18 @@ function IssueList() {
   const LOAD_INCREMENT = 10;
   const [visibleCount, setVisibleCount] = useState(LOAD_INCREMENT);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
+  const [viewMode, setViewMode] = useState<"list" | "kanban">("list");
+  const [draggedIssueId, setDraggedIssueId] = useState<string | null>(null);
+  const [dragOverStatus, setDragOverStatus] = useState<CoreStatus | null>(null);
   const navigate = useNavigate();
   const { projectId } = useParams<{ projectId: string }>();
+
+  const normalizeStatus = (status?: string): CoreStatus => {
+    if (STATUS_ORDER.includes(status as CoreStatus)) {
+      return status as CoreStatus;
+    }
+    return "할 일";
+  };
 
   useEffect(() => {
     setIsLoading(true);
@@ -120,7 +144,13 @@ function IssueList() {
 
   useEffect(() => {
     setVisibleCount(LOAD_INCREMENT);
-  }, [searchInput, sortOrder, statusFilter, tagFilter]);
+  }, [searchInput, sortOrder, statusFilter, tagFilter, viewMode]);
+
+  useEffect(() => {
+    if (viewMode === "kanban" && statusFilter !== "전체") {
+      setStatusFilter("전체");
+    }
+  }, [viewMode, statusFilter]);
 
   const handleCardClick = (issue: Issue) => setSelectedIssue(issue);
   const handleCloseModal = () => setSelectedIssue(null);
@@ -132,6 +162,26 @@ function IssueList() {
     await deleteDoc(doc(db, "issues", id));
     setIssues((prev) => prev.filter((i) => i.id !== id));
     setSelectedIssue(null);
+  };
+
+  const handleStatusChange = async (id: string, newStatus: CoreStatus) => {
+    setIssues((prev) =>
+      prev.map((issue) =>
+        issue.id === id ? { ...issue, status: newStatus } : issue
+      )
+    );
+    try {
+      await updateDoc(doc(db, "issues", id), { status: newStatus });
+    } catch (error) {
+      console.error("이슈 상태 변경 실패:", error);
+    }
+  };
+
+  const handleDropOnColumn = async (status: CoreStatus) => {
+    if (!draggedIssueId) return;
+    await handleStatusChange(draggedIssueId, status);
+    setDraggedIssueId(null);
+    setDragOverStatus(null);
   };
 
   const getDeadlineStatus = (deadline?: string) => {
@@ -149,23 +199,39 @@ function IssueList() {
   const getPriorityValue = (p: string) =>
     p === "높음" ? 3 : p === "중간" ? 2 : 1;
 
-  const filtered = issues
-    .filter(({ title, description, status, tags }) => {
-      const matchesSearch =
-        title.toLowerCase().includes(searchInput.toLowerCase()) ||
-        description.toLowerCase().includes(searchInput.toLowerCase());
-      const matchesStatus = statusFilter === "전체" || status === statusFilter;
-      const matchesTag =
-        tagFilter === "전체" || (tags && tags.includes(tagFilter));
-      return matchesSearch && matchesStatus && matchesTag;
-    })
-    .sort((a, b) => {
-      if (sortOrder === "우선순위 높은순")
-        return getPriorityValue(b.priority) - getPriorityValue(a.priority);
-      if (sortOrder === "우선순위 낮은순")
-        return getPriorityValue(a.priority) - getPriorityValue(b.priority);
-      return 0;
+  const filtered = useMemo(() => {
+    return issues
+      .filter(({ title, description, status, tags }) => {
+        const matchesSearch =
+          title.toLowerCase().includes(searchInput.toLowerCase()) ||
+          description.toLowerCase().includes(searchInput.toLowerCase());
+        const matchesStatus =
+          statusFilter === "전체" || status === statusFilter;
+        const matchesTag =
+          tagFilter === "전체" || (tags && tags.includes(tagFilter));
+        return matchesSearch && matchesStatus && matchesTag;
+      })
+      .sort((a, b) => {
+        if (sortOrder === "우선순위 높은순")
+          return getPriorityValue(b.priority) - getPriorityValue(a.priority);
+        if (sortOrder === "우선순위 낮은순")
+          return getPriorityValue(a.priority) - getPriorityValue(b.priority);
+        return 0;
+      });
+  }, [issues, searchInput, statusFilter, tagFilter, sortOrder]);
+
+  const groupedIssues = useMemo(() => {
+    const map: Record<CoreStatus, Issue[]> = {
+      "할 일": [],
+      "진행 중": [],
+      "완료": [],
+    };
+    filtered.forEach((issue) => {
+      const status = normalizeStatus(issue.status);
+      map[status].push(issue);
     });
+    return map;
+  }, [filtered]);
 
   const progress =
     issues.length === 0
@@ -177,21 +243,33 @@ function IssueList() {
 
   // Infinite scroll: load more when the observer element enters view
   useEffect(() => {
+    if (viewMode !== "list") return;
     if (!loadMoreRef.current) return;
     const observer = new IntersectionObserver((entries) => {
       if (entries[0].isIntersecting) {
-        setVisibleCount((prev) => Math.min(prev + LOAD_INCREMENT, filtered.length));
+        setVisibleCount((prev) =>
+          Math.min(prev + LOAD_INCREMENT, filtered.length)
+        );
       }
     });
     observer.observe(loadMoreRef.current);
     return () => observer.disconnect();
-  }, [filtered.length]);
+  }, [filtered.length, viewMode]);
+
+  const visibleIssues = filtered.slice(0, visibleCount);
+  const isKanbanView = viewMode === "kanban";
 
   return (
     <Container>
       <Title>이슈 목록</Title>
       <TopButtonRow>
-        <div />
+        <ViewToggleButton
+          onClick={() =>
+            setViewMode((prev) => (prev === "list" ? "kanban" : "list"))
+          }
+        >
+          {isKanbanView ? "리스트 보기" : "칸반 보기"}
+        </ViewToggleButton>
         <div style={{ display: "flex", gap: "10px" }}>
           <BackButton onClick={() => navigate("/projects")}>
             <ArrowLeft size={16} /> 프로젝트 목록
@@ -219,6 +297,7 @@ function IssueList() {
         <SortSelect
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
+          disabled={isKanbanView}
         >
           <option value="전체">전체</option>
           <option value="할 일">할 일</option>
@@ -247,74 +326,165 @@ function IssueList() {
         <ProgressBar percent={progress} />
       </ProgressContainer>
 
-      <ListBackground>
-        <ScrollableListWrapper>
+      {isKanbanView ? (
+        <BoardWrapper>
           {isLoading ? (
             <div
               style={{
                 display: "flex",
                 justifyContent: "center",
-                marginTop: 60,
+                marginTop: 40,
               }}
             >
               <Circles height="80" width="80" color="#4fa94d" />
             </div>
           ) : filtered.length === 0 ? (
-            <p
-              style={{ color: "#ccc", textAlign: "center", marginTop: "40px" }}
-            >
-              등록된 이슈가 없습니다.
-            </p>
+            <KanbanEmpty>등록된 이슈가 없습니다.</KanbanEmpty>
           ) : (
-            <List>
-              {filtered.slice(0, visibleCount).map((issue) => (
-                <Todo key={issue.id} onClick={() => handleCardClick(issue)}>
-                  <NoSelect>
-                    <CardWrapper>
-                      <StatusBadge status={issue.status || "할 일"}>
-                        {issue.status || "할 일"}
-                      </StatusBadge>
-                      <CardTitle>{issue.title}</CardTitle>
-                      <CardDescription>{issue.description}</CardDescription>
-                      <CardMeta>
-                        {issue.category && (
-                          <CategoryTag>{issue.category}</CategoryTag>
-                        )}
-                        <PriorityTag priority={issue.priority}>
-                          {issue.priority}
-                        </PriorityTag>
-                        {issue.tags?.map((tag, idx) => (
-                          <Tag key={idx}>#{tag}</Tag>
-                        ))}
-                        {issue.assignee && (
-                          <Initial title={issue.assignee}>
-                            {issue.assignee.charAt(0).toUpperCase()}
-                          </Initial>
-                        )}
-                        <CommentCount>
-                          💬 {issue.comments?.length || 0}
-                        </CommentCount>
-                      </CardMeta>
-                      {issue.deadline && (
-                        <DeadlineTag status={getDeadlineStatus(issue.deadline)}>
-                          {getDeadlineStatus(issue.deadline)}
-                        </DeadlineTag>
-                      )}
-                    </CardWrapper>
-                  </NoSelect>
-                </Todo>
+            <KanbanContainer>
+              {STATUS_ORDER.map((status) => (
+                <KanbanColumn
+                  key={status}
+                  isActive={dragOverStatus === status}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = "move";
+                  }}
+                  onDrop={() => handleDropOnColumn(status)}
+                  onDragEnter={() => {
+                    if (draggedIssueId) {
+                      setDragOverStatus(status);
+                    }
+                  }}
+                  onDragLeave={() => {
+                    setDragOverStatus((prev) => (prev === status ? null : prev));
+                  }}
+                >
+                  <KanbanHeader>
+                    <KanbanTitle>{status}</KanbanTitle>
+                    <KanbanCount>{groupedIssues[status].length}건</KanbanCount>
+                  </KanbanHeader>
+                  <KanbanList>
+                    {groupedIssues[status].length === 0 ? (
+                      <KanbanEmpty>이슈가 없습니다.</KanbanEmpty>
+                    ) : (
+                      groupedIssues[status].map((issue) => (
+                        <KanbanCard
+                          key={issue.id}
+                          draggable
+                          onDragStart={() => setDraggedIssueId(issue.id)}
+                          onDragEnd={() => {
+                            setDraggedIssueId(null);
+                            setDragOverStatus(null);
+                          }}
+                          onClick={() => handleCardClick(issue)}
+                        >
+                          <StatusBadge status={issue.status || "할 일"}>
+                            {issue.status || "할 일"}
+                          </StatusBadge>
+                          <CardTitle>{issue.title}</CardTitle>
+                          <CardDescription>{issue.description}</CardDescription>
+                          <CardMeta>
+                            {issue.category && (
+                              <CategoryTag>{issue.category}</CategoryTag>
+                            )}
+                            <PriorityTag priority={issue.priority}>
+                              {issue.priority}
+                            </PriorityTag>
+                            {issue.tags?.map((tag, idx) => (
+                              <Tag key={idx}>#{tag}</Tag>
+                            ))}
+                          </CardMeta>
+                          {issue.deadline && (
+                            <DeadlineTag status={getDeadlineStatus(issue.deadline)}>
+                              {getDeadlineStatus(issue.deadline)}
+                            </DeadlineTag>
+                          )}
+                        </KanbanCard>
+                      ))
+                    )}
+                  </KanbanList>
+                </KanbanColumn>
               ))}
-            </List>
+            </KanbanContainer>
           )}
-        </ScrollableListWrapper>
-        {visibleCount < filtered.length && (
-          <div ref={loadMoreRef} style={{ textAlign: "center", marginTop: 20 }}>
-            <OutlineButton onClick={() => setVisibleCount((v) => v + LOAD_INCREMENT)}>
-              더 보기
-            </OutlineButton>
-          </div>
-        )}
-      </ListBackground>
+        </BoardWrapper>
+      ) : (
+        <ListBackground>
+          <ScrollableListWrapper>
+            {isLoading ? (
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  marginTop: 60,
+                }}
+              >
+                <Circles height="80" width="80" color="#4fa94d" />
+              </div>
+            ) : filtered.length === 0 ? (
+              <p
+                style={{
+                  color: "#ccc",
+                  textAlign: "center",
+                  marginTop: "40px",
+                }}
+              >
+                등록된 이슈가 없습니다.
+              </p>
+            ) : (
+              <List>
+                {visibleIssues.map((issue) => (
+                  <Todo key={issue.id} onClick={() => handleCardClick(issue)}>
+                    <NoSelect>
+                      <CardWrapper>
+                        <StatusBadge status={issue.status || "할 일"}>
+                          {issue.status || "할 일"}
+                        </StatusBadge>
+                        <CardTitle>{issue.title}</CardTitle>
+                        <CardDescription>{issue.description}</CardDescription>
+                        <CardMeta>
+                          {issue.category && (
+                            <CategoryTag>{issue.category}</CategoryTag>
+                          )}
+                          <PriorityTag priority={issue.priority}>
+                            {issue.priority}
+                          </PriorityTag>
+                          {issue.tags?.map((tag, idx) => (
+                            <Tag key={idx}>#{tag}</Tag>
+                          ))}
+                          {issue.assignee && (
+                            <Initial title={issue.assignee}>
+                              {issue.assignee.charAt(0).toUpperCase()}
+                            </Initial>
+                          )}
+                          <CommentCount>
+                            💬 {issue.comments?.length || 0}
+                          </CommentCount>
+                        </CardMeta>
+                        {issue.deadline && (
+                          <DeadlineTag status={getDeadlineStatus(issue.deadline)}>
+                            {getDeadlineStatus(issue.deadline)}
+                          </DeadlineTag>
+                        )}
+                      </CardWrapper>
+                    </NoSelect>
+                  </Todo>
+                ))}
+              </List>
+            )}
+          </ScrollableListWrapper>
+          {visibleCount < filtered.length && (
+            <div ref={loadMoreRef} style={{ textAlign: "center", marginTop: 20 }}>
+              <OutlineButton
+                onClick={() => setVisibleCount((v) => v + LOAD_INCREMENT)}
+              >
+                더 보기
+              </OutlineButton>
+            </div>
+          )}
+        </ListBackground>
+      )}
 
       {selectedIssue && (
         <IssueDetailModal

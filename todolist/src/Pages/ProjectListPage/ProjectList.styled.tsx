@@ -24,6 +24,155 @@ export const Title = styled.h2`
   font-weight: 700;
 `;
 
+export const DashboardSection = styled.section`
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-bottom: 32px;
+`;
+
+export const DashboardHeader = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: #cfd4ff;
+`;
+
+export const DashboardTitle = styled.h3`
+  font-size: clamp(20px, 2.6vw, 24px);
+  font-weight: 600;
+  margin: 0;
+  color: #ffffff;
+`;
+
+export const DashboardSubtitle = styled.p`
+  margin: 0;
+  font-size: 14px;
+  color: #aab0d6;
+`;
+
+export const DashboardGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+`;
+
+export const MetricCard = styled.div`
+  background: linear-gradient(145deg, rgba(67, 76, 204, 0.35), rgba(25, 27, 57, 0.6));
+  border: 1px solid ${({ theme }) => theme.colors.cardBorder};
+  border-radius: 16px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(6px);
+`;
+
+export const MetricLabel = styled.span`
+  font-size: 13px;
+  color: #adb5ff;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+`;
+
+export const MetricValue = styled.strong`
+  font-size: clamp(22px, 3vw, 30px);
+  color: #ffffff;
+  font-weight: 700;
+`;
+
+export const MetricCaption = styled.span`
+  font-size: 12px;
+  color: #9ba3d4;
+`;
+
+export const DashboardSplit = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+`;
+
+export const TrendCard = styled.div`
+  background-color: rgba(29, 31, 68, 0.9);
+  border: 1px solid ${({ theme }) => theme.colors.cardBorder};
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
+`;
+
+export const TrendTitle = styled.h4`
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #ffffff;
+`;
+
+export const TrendList = styled.ul`
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+`;
+
+export const TrendItem = styled.li`
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+`;
+
+export const TrendLabelRow = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #d0d4ff;
+  font-size: 13px;
+`;
+
+export const TrendBar = styled.span<{ width: number }>`
+  display: block;
+  height: 8px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, ${({ theme }) => theme.colors.primary}, #7b6cff);
+  width: ${({ width }) => Math.max(6, width)}%;
+  transition: width 0.3s ease;
+`;
+
+export const ActivityList = styled.ul`
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+`;
+
+export const ActivityItem = styled.li`
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background-color: rgba(60, 64, 115, 0.45);
+  border: 1px solid rgba(123, 130, 200, 0.2);
+`;
+
+export const ActivityTitle = styled.span`
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+`;
+
+export const ActivityMeta = styled.span`
+  font-size: 12px;
+  color: #9da3d9;
+`;
+
 export const ProjectList = styled.ul`
   list-style: none;
   padding: 0;

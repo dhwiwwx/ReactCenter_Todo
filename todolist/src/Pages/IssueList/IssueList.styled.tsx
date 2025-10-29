@@ -69,6 +69,11 @@ export const SortSelect = styled.select`
   @media (max-width: 768px) {
     width: 100%;
   }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
 `;
 
 export const GreenButton = styled.button`
@@ -358,4 +363,110 @@ export const CommentCount = styled.div`
     content: "💬";
     margin-right: 4px;
   }
+`;
+
+export const ViewToggleButton = styled.button`
+  padding: 8px 12px;
+  background-color: rgba(113, 120, 255, 0.2);
+  color: #fff;
+  border: 1px solid rgba(113, 120, 255, 0.4);
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+
+  &:hover {
+    background-color: rgba(113, 120, 255, 0.35);
+    transform: translateY(-1px);
+  }
+
+  @media (max-width: 768px) {
+    width: 100%;
+  }
+`;
+
+export const BoardWrapper = styled.div`
+  width: 92%;
+  margin: 0 auto 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+`;
+
+export const KanbanContainer = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+`;
+
+export const KanbanColumn = styled.div<{ isActive: boolean }>`
+  background-color: #2d2f55;
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  min-height: 360px;
+  border: 2px dashed
+    ${({ isActive, theme }) => (isActive ? theme.colors.primary : "transparent")};
+  box-shadow: ${({ isActive }) =>
+    isActive ? "0 0 0 1px rgba(113, 120, 255, 0.6)" : "0 8px 18px rgba(0, 0, 0, 0.18)"};
+  transition: border 0.2s ease, box-shadow 0.2s ease;
+`;
+
+export const KanbanHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+`;
+
+export const KanbanTitle = styled.span`
+  font-weight: 600;
+  font-size: 15px;
+  color: #ffffff;
+`;
+
+export const KanbanCount = styled.span`
+  font-size: 12px;
+  color: #b0b5ff;
+`;
+
+export const KanbanList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+`;
+
+export const KanbanCard = styled.div`
+  background-color: ${({ theme }) => theme.colors.cardBg};
+  border: 1px solid ${({ theme }) => theme.colors.cardBorder};
+  border-radius: 12px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  cursor: grab;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  &:active {
+    cursor: grabbing;
+  }
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 18px rgba(0, 0, 0, 0.25);
+  }
+`;
+
+export const KanbanEmpty = styled.div`
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  color: #9aa0d6;
+  border-radius: 10px;
+  border: 1px dashed rgba(154, 160, 214, 0.4);
+  padding: 12px;
 `;

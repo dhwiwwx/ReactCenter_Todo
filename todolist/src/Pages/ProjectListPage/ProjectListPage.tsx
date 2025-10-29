@@ -1,5 +1,5 @@
 // 기존 import 유지
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Container,
@@ -20,6 +20,26 @@ import {
   HeaderActions,
   ProjectCount,
   LoadingMessage,
+  DashboardSection,
+  DashboardHeader,
+  DashboardTitle,
+  DashboardSubtitle,
+  DashboardGrid,
+  MetricCard,
+  MetricLabel,
+  MetricValue,
+  MetricCaption,
+  DashboardSplit,
+  TrendCard,
+  TrendTitle,
+  TrendList,
+  TrendItem,
+  TrendLabelRow,
+  TrendBar,
+  ActivityList,
+  ActivityItem,
+  ActivityTitle,
+  ActivityMeta,
 } from "./ProjectList.styled";
 import ProjectItemContent from "./ProjectItemContent";
 import { db, auth } from "../../Firebase/firebase";
@@ -80,6 +100,91 @@ const ProjectListPage = () => {
   const [shareProjectId, setShareProjectId] = useState<string | null>(null);
 
   const navigate = useNavigate();
+
+  const totalProjects = projects.length;
+  const totalIssues = useMemo(
+    () => projects.reduce((acc, project) => acc + (project.issueCount ?? 0), 0),
+    [projects]
+  );
+  const activeProjects = useMemo(
+    () => projects.filter((project) => (project.issueCount ?? 0) > 0).length,
+    [projects]
+  );
+  const averageCompletion = useMemo(() => {
+    if (projects.length === 0) {
+      return 0;
+    }
+    const sum = projects.reduce(
+      (acc, project) => acc + (project.completionRate ?? 0),
+      0
+    );
+    return Math.round(sum / projects.length);
+  }, [projects]);
+
+  const pinnedCount = useMemo(
+    () => projects.filter((project) => project.isPinned).length,
+    [projects]
+  );
+
+  const completionLeaders = useMemo(
+    () =>
+      [...projects]
+        .filter((project) => (project.issueCount ?? 0) > 0)
+        .sort(
+          (a, b) => (b.completionRate ?? 0) - (a.completionRate ?? 0)
+        )
+        .slice(0, 5),
+    [projects]
+  );
+
+  const issueLeaders = useMemo(
+    () =>
+      [...projects]
+        .sort((a, b) => (b.issueCount ?? 0) - (a.issueCount ?? 0))
+        .slice(0, 5),
+    [projects]
+  );
+
+  const recentActivity = useMemo(
+    () =>
+      [...projects]
+        .filter((project) => project.lastViewedAt)
+        .sort((a, b) => {
+          const aTime = a.lastViewedAt
+            ? new Date(a.lastViewedAt).getTime()
+            : 0;
+          const bTime = b.lastViewedAt
+            ? new Date(b.lastViewedAt).getTime()
+            : 0;
+          return bTime - aTime;
+        })
+        .slice(0, 6),
+    [projects]
+  );
+
+  const bestCompletionProject = completionLeaders[0];
+  const busiestProject = issueLeaders[0];
+  const latestActivityProject = recentActivity[0];
+
+  const formatRelativeTime = (iso?: string | null) => {
+    if (!iso) return "최근 기록 없음";
+    const target = new Date(iso).getTime();
+    if (Number.isNaN(target)) return "최근 기록 없음";
+    const diffMs = Date.now() - target;
+    const minutes = Math.floor(diffMs / (1000 * 60));
+    if (minutes < 1) return "방금 전";
+    if (minutes < 60) return `${minutes}분 전`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}시간 전`;
+    const days = Math.floor(hours / 24);
+    if (days < 7) return `${days}일 전`;
+    const weeks = Math.floor(days / 7);
+    if (weeks < 5) return `${weeks}주 전`;
+    const months = Math.floor(days / 30);
+    if (months < 12) return `${months}개월 전`;
+    const years = Math.floor(days / 365);
+    return `${years}년 전`;
+  };
 
   const handleSignOut = async () => {
     await signOut(auth);
@@ -389,6 +494,114 @@ const ProjectListPage = () => {
 
   return (
     <Container>
+      <DashboardSection>
+        <DashboardHeader>
+          <DashboardTitle>프로젝트 개요</DashboardTitle>
+          <DashboardSubtitle>
+            전체 프로젝트 상태와 최근 활동을 한눈에 확인하세요.
+          </DashboardSubtitle>
+        </DashboardHeader>
+        <DashboardGrid>
+          <MetricCard>
+            <MetricLabel>전체 프로젝트</MetricLabel>
+            <MetricValue>{totalProjects}</MetricValue>
+            <MetricCaption>{pinnedCount}개 고정됨</MetricCaption>
+          </MetricCard>
+          <MetricCard>
+            <MetricLabel>이슈 누적</MetricLabel>
+            <MetricValue>{totalIssues}</MetricValue>
+            <MetricCaption>
+              가장 바쁜 팀: {busiestProject ? busiestProject.name : "-"}
+            </MetricCaption>
+          </MetricCard>
+          <MetricCard>
+            <MetricLabel>평균 완료율</MetricLabel>
+            <MetricValue>{averageCompletion}%</MetricValue>
+            <MetricCaption>
+              최고 성과: {bestCompletionProject
+                ? `${bestCompletionProject.name} (${bestCompletionProject.completionRate}%)`
+                : "데이터 없음"}
+            </MetricCaption>
+          </MetricCard>
+          <MetricCard>
+            <MetricLabel>활성 프로젝트</MetricLabel>
+            <MetricValue>{activeProjects}</MetricValue>
+            <MetricCaption>
+              최근 열람: {latestActivityProject
+                ? latestActivityProject.name
+                : "-"}
+            </MetricCaption>
+          </MetricCard>
+        </DashboardGrid>
+        <DashboardSplit>
+          <TrendCard>
+            <TrendTitle>완료율 상위 프로젝트</TrendTitle>
+            {completionLeaders.length === 0 ? (
+              <MetricCaption>완료 데이터가 없습니다.</MetricCaption>
+            ) : (
+              <TrendList>
+                {completionLeaders.map((project) => (
+                  <TrendItem key={project.id}>
+                    <TrendLabelRow>
+                      <span>{project.name}</span>
+                      <span>{project.completionRate ?? 0}%</span>
+                    </TrendLabelRow>
+                    <TrendBar width={project.completionRate ?? 0} />
+                  </TrendItem>
+                ))}
+              </TrendList>
+            )}
+          </TrendCard>
+          <TrendCard>
+            <TrendTitle>이슈 볼륨 Top 5</TrendTitle>
+            {issueLeaders.length === 0 ? (
+              <MetricCaption>등록된 프로젝트가 없습니다.</MetricCaption>
+            ) : (
+              <TrendList>
+                {(() => {
+                  const maxIssueCount = Math.max(
+                    ...issueLeaders.map((project) => project.issueCount ?? 0),
+                    1
+                  );
+                  return issueLeaders.map((project) => (
+                    <TrendItem key={project.id}>
+                      <TrendLabelRow>
+                        <span>{project.name}</span>
+                        <span>{project.issueCount ?? 0}건</span>
+                      </TrendLabelRow>
+                      <TrendBar
+                        width={
+                          ((project.issueCount ?? 0) / maxIssueCount) * 100
+                        }
+                      />
+                    </TrendItem>
+                  ));
+                })()}
+              </TrendList>
+            )}
+          </TrendCard>
+          <TrendCard>
+            <TrendTitle>최근 열람 활동</TrendTitle>
+            {recentActivity.length === 0 ? (
+              <MetricCaption>최근 열람 기록이 없습니다.</MetricCaption>
+            ) : (
+              <ActivityList>
+                {recentActivity.map((project) => (
+                  <ActivityItem key={project.id}>
+                    <ActivityTitle>{project.name}</ActivityTitle>
+                    <ActivityMeta>
+                      마지막 열람 · {formatRelativeTime(project.lastViewedAt)}
+                    </ActivityMeta>
+                    {project.description && (
+                      <MetricCaption>{project.description}</MetricCaption>
+                    )}
+                  </ActivityItem>
+                ))}
+              </ActivityList>
+            )}
+          </TrendCard>
+        </DashboardSplit>
+      </DashboardSection>
       <HeaderRow>
           <Title>
             📁 프로젝트 목록{" "}
