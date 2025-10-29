@@ -18,11 +18,10 @@ import {
   InfoText,
   PasswordWrapper,
   TogglePasswordButton,
+  SubmissionMessage,
 } from "./Signup.styled";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 
 function Signup() {
   const [email, setEmail] = useState("");
@@ -43,6 +42,10 @@ function Signup() {
 
   const [shakeEmail, setShakeEmail] = useState(false);
   const [shakeConfirm, setShakeConfirm] = useState(false);
+
+  const [formMessage, setFormMessage] = useState<
+    { type: "success" | "error"; text: string } | null
+  >(null);
 
   const navigate = useNavigate();
 
@@ -98,6 +101,8 @@ function Signup() {
   }, [password]);
 
   const handleSignup = async () => {
+    setFormMessage(null);
+
     if (!emailValid || !isEmailAvailable) {
       setShakeEmail(true);
       setTimeout(() => setShakeEmail(false), 500);
@@ -115,9 +120,10 @@ function Signup() {
       !/[0-9]/.test(password) ||
       password.length < 8
     ) {
-      toast.error(
-        "비밀번호는 8자 이상, 대문자, 소문자, 숫자를 포함해야 합니다."
-      );
+      setFormMessage({
+        type: "error",
+        text: "비밀번호는 8자 이상, 대문자, 소문자, 숫자를 포함해야 합니다.",
+      });
       return;
     }
 
@@ -133,7 +139,10 @@ function Signup() {
         email: cred.user.email,
       });
 
-      toast.success("회원가입 성공! 이메일 인증 후 로그인하세요.");
+      setFormMessage({
+        type: "success",
+        text: "회원가입 성공! 이메일 인증 후 로그인하세요.",
+      });
 
       // 🔑 바로 로그아웃 처리
       await auth.signOut();
@@ -141,7 +150,10 @@ function Signup() {
       setTimeout(() => navigate("/"), 2000);
     } catch (error: any) {
       console.error(error);
-      toast.error("회원가입 실패. 다시 시도해주세요.");
+      setFormMessage({
+        type: "error",
+        text: "회원가입 실패. 다시 시도해주세요.",
+      });
     }
   };
 
@@ -222,20 +234,15 @@ function Signup() {
         )}
 
         <Button onClick={handleSignup}>회원가입</Button>
+        {formMessage && (
+          <SubmissionMessage variant={formMessage.type}>
+            {formMessage.text}
+          </SubmissionMessage>
+        )}
         <LinkButton onClick={() => navigate("/")}>
           이미 계정이 있으신가요? 로그인
         </LinkButton>
       </SignupBox>
-
-      <ToastContainer
-        position="top-center"
-        autoClose={2500}
-        hideProgressBar={false}
-        closeOnClick
-        pauseOnHover
-        draggable={false}
-        theme="colored"
-      />
     </Container>
   );
 }

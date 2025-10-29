@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   signInWithEmailAndPassword,
@@ -26,12 +26,10 @@ import {
   SNSButton,
   SubButtonRow,
   ShakeWrapper,
-  ErrorMessage,
+  StatusMessage,
 } from "./Login.styled";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -41,6 +39,7 @@ function Login() {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [shouldShake, setShouldShake] = useState(false);
+  const [infoMessage, setInfoMessage] = useState("");
   const [capsLockOn, setCapsLockOn] = useState(false);
   const emailRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
@@ -48,6 +47,25 @@ function Login() {
 
   const [failCount, setFailCount] = useState<number>(0);
   const [lockUntil, setLockUntil] = useState<number | null>(null);
+
+  const triggerShake = useCallback(() => {
+    setShouldShake(true);
+    setTimeout(() => setShouldShake(false), 500);
+  }, []);
+
+  const showError = useCallback(
+    (message: string) => {
+      setInfoMessage("");
+      setErrorMessage(message);
+      triggerShake();
+    },
+    [triggerShake]
+  );
+
+  const showInfo = useCallback((message: string) => {
+    setErrorMessage("");
+    setInfoMessage(message);
+  }, []);
 
   useEffect(() => {
     emailRef.current?.focus();
@@ -60,7 +78,7 @@ function Login() {
     const unsubscribe = auth.onAuthStateChanged((user) => {
       if (user) {
         if (!user.emailVerified) {
-          toast.error("이메일 인증 후 이용 가능합니다.");
+          showError("이메일 인증 후 이용 가능합니다.");
           auth.signOut(); // 인증 안 됐으면 로그아웃
           return;
         }
@@ -69,7 +87,7 @@ function Login() {
     });
 
     return unsubscribe;
-  }, [navigate]);
+  }, [navigate, showError]);
 
   useEffect(() => {
     if (lockUntil) {
@@ -87,17 +105,6 @@ function Login() {
     }
   }, [lockUntil]);
 
-  const triggerShake = () => {
-    setShouldShake(true);
-    setTimeout(() => setShouldShake(false), 500);
-  };
-
-  const showError = (message: string) => {
-    setErrorMessage(message);
-    toast.error(message);
-    triggerShake();
-  };
-
   const handleLogin = async () => {
     if (lockUntil && lockUntil > Date.now()) {
       const secondsLeft = Math.ceil((lockUntil - Date.now()) / 1000);
@@ -112,6 +119,7 @@ function Login() {
 
     try {
       setErrorMessage("");
+      setInfoMessage("");
       setLoading(true);
 
       await setPersistence(
@@ -140,15 +148,7 @@ function Login() {
       }
 
       console.log(`로그인 알림: ${cred.user.email} 로그인`);
-      toast.success(`환영합니다, ${cred.user.email}님!`, {
-        position: "top-center",
-        autoClose: 2500,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: false,
-        theme: "colored",
-      });
+      showInfo(`환영합니다, ${cred.user.email}님! 곧 프로젝트 페이지로 이동합니다.`);
 
       setFailCount(0);
       setLockUntil(null);
@@ -210,6 +210,7 @@ function Login() {
   const handleSNSLogin = async () => {
     try {
       setErrorMessage("");
+      setInfoMessage("");
       const provider = new GoogleAuthProvider();
       const cred = await signInWithPopup(auth, provider);
 
@@ -267,7 +268,11 @@ function Login() {
           </PasswordWrapper>
         </ShakeWrapper>
 
-        {errorMessage && <ErrorMessage>{errorMessage}</ErrorMessage>}
+        {(errorMessage || infoMessage) && (
+          <StatusMessage variant={errorMessage ? "error" : "success"}>
+            {errorMessage || infoMessage}
+          </StatusMessage>
+        )}
 
         {capsLockOn && (
           <div style={{ color: "orange", marginBottom: "10px" }}>
@@ -300,16 +305,6 @@ function Login() {
           </SubButton>
         </SubButtonRow>
       </LoginBox>
-
-      <ToastContainer
-        position="top-center"
-        autoClose={2500}
-        hideProgressBar={false}
-        closeOnClick
-        pauseOnHover
-        draggable={false}
-        theme="colored"
-      />
     </Container>
   );
 }

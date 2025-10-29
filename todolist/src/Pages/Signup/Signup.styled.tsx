@@ -176,3 +176,22 @@ export const TogglePasswordButton = styled.button`
     color: white;
   }
 `;
+
+const fadeIn = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+`;
+
+export const SubmissionMessage = styled.p<{ variant: "success" | "error" }>`
+  margin-top: 12px;
+  font-size: 14px;
+  color: ${({ variant }) => (variant === "success" ? "#4fa94d" : "#ff6b6b")};
+  text-align: center;
+  animation: ${fadeIn} 0.25s ease;
+`;
