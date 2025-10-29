@@ -148,7 +148,9 @@ function Login() {
       }
 
       console.log(`로그인 알림: ${cred.user.email} 로그인`);
-      showInfo(`환영합니다, ${cred.user.email}님! 곧 프로젝트 페이지로 이동합니다.`);
+      showInfo(
+        `환영합니다, ${cred.user.email}님! 곧 프로젝트 페이지로 이동합니다.`
+      );
 
       setFailCount(0);
       setLockUntil(null);
