@@ -11,6 +11,8 @@ import MyPage from "./Pages/MyPage/MyPage"; // ✅ 추가
 import NotFound from "./Pages/NotFound/NotFound";
 import { auth } from "./Firebase/firebase";
 import { useAuthState } from "react-firebase-hooks/auth";
+import ProjectViewLayout from "./Pages/ProjectView/ProjectViewLayout";
+import ProjectDashboard from "./Pages/ProjectListPage/components/ProjectDashboard";
 
 function App() {
   const [user, loading] = useAuthState(auth);
@@ -43,13 +45,14 @@ function App() {
           element={user ? <ProjectListPage /> : <Navigate to="/login" />}
         />
         <Route
-          path="/projects/:projectId/issues"
-          element={user ? <IssueList /> : <Navigate to="/login" />}
-        />
-        <Route
-          path="/projects/:projectId/register"
-          element={user ? <IssueRegister /> : <Navigate to="/login" />}
-        />
+          path="/projects/:projectId"
+          element={user ? <ProjectViewLayout /> : <Navigate to="/login" />}
+        >
+          <Route index element={<Navigate to="dashboard" replace />} />
+          <Route path="dashboard" element={<ProjectDashboard />} />
+          <Route path="issues" element={<IssueList />} />
+          <Route path="register" element={<IssueRegister />} />
+        </Route>
         <Route
           path="/edit/:id"
           element={user ? <IssueEdit /> : <Navigate to="/login" />}
