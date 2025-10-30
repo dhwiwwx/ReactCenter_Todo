@@ -36,6 +36,13 @@ import {
   TrendItem,
   TrendLabelRow,
   TrendBar,
+  ColoredTrendBar,
+  TrendLegend,
+  TrendLegendItem,
+  LegendDot,
+  DualBar,
+  DualBarSegment,
+  MetricEmptyState,
   ActivityList,
   ActivityItem,
   ActivityTitle,
@@ -57,6 +64,7 @@ import {
   where,
   arrayUnion,
   onSnapshot,
+  Timestamp,
 } from "firebase/firestore";
 import ProjectShareModal from "./ProjectShareModal";
 import ConfirmModal from "./ConfirmModal";
@@ -64,6 +72,77 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Bell } from "lucide-react";
 import ActivityFeed from "../../components/ActivityFeed/ActivityFeed";
+import { format, startOfDay, subDays } from "date-fns";
+
+type WeeklySnapshot = {
+  dateKey: string;
+  created: number;
+  completed: number;
+};
+
+type CategoryCounts = Record<string, number>;
+type PriorityCounts = Record<string, number>;
+
+const DEFAULT_WORKFLOW = ["할 일", "진행 중", "완료"] as const;
+const PRIORITY_COLOR_MAP: Record<string, string> = {
+  긴급: "#ef4444",
+  높음: "#f97316",
+  보통: "#eab308",
+  낮음: "#3b82f6",
+  미지정: "#6366f1",
+};
+
+const CATEGORY_COLOR_PALETTE = [
+  "#38bdf8",
+  "#34d399",
+  "#a855f7",
+  "#f97316",
+  "#facc15",
+];
+
+type IssueDocSummary = {
+  status?: string;
+  priority?: string;
+  category?: string;
+  createdAt?: unknown;
+  completedAt?: unknown;
+  deadline?: string;
+};
+
+const sanitizeWorkflow = (workflow?: unknown): string[] => {
+  if (!Array.isArray(workflow)) {
+    return [...DEFAULT_WORKFLOW];
+  }
+
+  const normalized = workflow
+    .map((status) => (typeof status === "string" ? status.trim() : ""))
+    .filter((status) => status.length > 0);
+
+  return normalized.length > 0 ? normalized : [...DEFAULT_WORKFLOW];
+};
+
+const createWeekTemplate = () => {
+  const today = startOfDay(new Date());
+  return Array.from({ length: 7 }, (_, index) => {
+    const date = subDays(today, 6 - index);
+    const key = format(date, "yyyy-MM-dd");
+    return { date, key };
+  });
+};
+
+const getDateKey = (value: unknown): string | null => {
+  if (!value) return null;
+  if (value instanceof Timestamp) {
+    return format(startOfDay(value.toDate()), "yyyy-MM-dd");
+  }
+  if (typeof value === "string") {
+    const parsed = Date.parse(value);
+    if (!Number.isNaN(parsed)) {
+      return format(startOfDay(new Date(parsed)), "yyyy-MM-dd");
+    }
+  }
+  return null;
+};
 
 export interface Project {
   id: string;
@@ -78,6 +157,10 @@ export interface Project {
   lastViewedAt?: string;
   order?: number;
   completionRate?: number;
+  workflow?: string[];
+  categoryCounts?: CategoryCounts;
+  priorityCounts?: PriorityCounts;
+  weeklyActivity?: WeeklySnapshot[];
 }
 
 const ProjectListPage = () => {
@@ -168,9 +251,108 @@ const ProjectListPage = () => {
     [projects]
   );
 
+  const categorySummary = useMemo(
+    () => {
+      const totals: CategoryCounts = {};
+      projects.forEach((project) => {
+        const counts = project.categoryCounts ?? {};
+        Object.entries(counts).forEach(([category, count]) => {
+          totals[category] = (totals[category] ?? 0) + count;
+        });
+      });
+
+      const grandTotal = Object.values(totals).reduce(
+        (acc, value) => acc + value,
+        0
+      );
+
+      return Object.entries(totals)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5)
+        .map(([category, count], index) => ({
+          category,
+          count,
+          ratio: grandTotal > 0 ? Math.round((count / grandTotal) * 100) : 0,
+          color: CATEGORY_COLOR_PALETTE[index % CATEGORY_COLOR_PALETTE.length],
+        }));
+    },
+    [projects]
+  );
+
+  const prioritySummary = useMemo(
+    () => {
+      const totals: PriorityCounts = {};
+      projects.forEach((project) => {
+        const counts = project.priorityCounts ?? {};
+        Object.entries(counts).forEach(([priority, count]) => {
+          totals[priority] = (totals[priority] ?? 0) + count;
+        });
+      });
+
+      const grandTotal = Object.values(totals).reduce(
+        (acc, value) => acc + value,
+        0
+      );
+
+      return Object.entries(totals)
+        .sort((a, b) => b[1] - a[1])
+        .map(([priority, count]) => ({
+          priority,
+          count,
+          ratio: grandTotal > 0 ? Math.round((count / grandTotal) * 100) : 0,
+          color: PRIORITY_COLOR_MAP[priority] ?? "#475569",
+        }));
+    },
+    [projects]
+  );
+
+  const weeklyTrend = useMemo(() => {
+    const template = createWeekTemplate();
+    const aggregated = template.reduce<Record<
+      string,
+      { created: number; completed: number }
+    >>(
+      (acc, { key }) => {
+        acc[key] = { created: 0, completed: 0 };
+        return acc;
+      },
+      {}
+    );
+
+    projects.forEach((project) => {
+      (project.weeklyActivity ?? []).forEach((point) => {
+        if (!aggregated[point.dateKey]) return;
+        aggregated[point.dateKey].created += point.created;
+        aggregated[point.dateKey].completed += point.completed;
+      });
+    });
+
+    return template.map(({ key, date }) => ({
+      dateKey: key,
+      label: format(date, "MM/dd"),
+      created: aggregated[key]?.created ?? 0,
+      completed: aggregated[key]?.completed ?? 0,
+    }));
+  }, [projects]);
+
   const bestCompletionProject = completionLeaders[0];
   const busiestProject = issueLeaders[0];
   const latestActivityProject = recentActivity[0];
+  const topCategory = categorySummary[0];
+  const topPriority = prioritySummary[0];
+  const totalCreatedThisWeek = weeklyTrend.reduce(
+    (acc, item) => acc + item.created,
+    0
+  );
+  const totalCompletedThisWeek = weeklyTrend.reduce(
+    (acc, item) => acc + item.completed,
+    0
+  );
+  const maxWeeklyValue =
+    weeklyTrend.reduce(
+      (max, item) => Math.max(max, item.created, item.completed),
+      0
+    ) || 1;
 
   const formatRelativeTime = (iso?: string | null) => {
     if (!iso) return "최근 기록 없음";
@@ -230,25 +412,72 @@ const ProjectListPage = () => {
             projectSnapshot.docs.map(async (docSnap) => {
               const projectId = docSnap.id;
               const data = docSnap.data();
+              const workflow = sanitizeWorkflow(data.workflow);
+              const finalStatus = workflow[workflow.length - 1] ?? "완료";
               const q = query(
                 collection(db, "issues"),
                 where("projectId", "==", projectId)
               );
               const issueSnapshot = await getDocs(q);
-              const issueCount = issueSnapshot.size;
+              const issuesData = issueSnapshot.docs.map((issueDoc) => ({
+                id: issueDoc.id,
+                ...(issueDoc.data() as IssueDocSummary),
+              }));
 
-              const finishedSnapshot = await getDocs(
-                query(
-                  collection(db, "issues"),
-                  where("projectId", "==", projectId),
-                  where("status", "==", "완료")
-                )
+              const issueCount = issuesData.length;
+
+              const categoryCounts: CategoryCounts = {};
+              const priorityCounts: PriorityCounts = {};
+              const weekTemplate = createWeekTemplate();
+              const weekMap = weekTemplate.reduce<Record<string, { created: number; completed: number }>>(
+                (acc, { key }) => {
+                  acc[key] = { created: 0, completed: 0 };
+                  return acc;
+                },
+                {}
               );
-              const finishedCount = finishedSnapshot.size;
+
+              let finishedCount = 0;
+
+              issuesData.forEach((issue) => {
+                const status = typeof issue.status === "string" ? issue.status : "";
+                if (status === finalStatus) {
+                  finishedCount += 1;
+                }
+
+                const category =
+                  typeof issue.category === "string" && issue.category.trim().length > 0
+                    ? issue.category.trim()
+                    : "기타";
+                categoryCounts[category] = (categoryCounts[category] ?? 0) + 1;
+
+                const priority =
+                  typeof issue.priority === "string" && issue.priority.trim().length > 0
+                    ? issue.priority.trim()
+                    : "미지정";
+                priorityCounts[priority] = (priorityCounts[priority] ?? 0) + 1;
+
+                const createdKey = getDateKey(issue.createdAt);
+                if (createdKey && weekMap[createdKey]) {
+                  weekMap[createdKey].created += 1;
+                }
+
+                const completedKey = getDateKey(issue.completedAt);
+                if (completedKey && weekMap[completedKey]) {
+                  weekMap[completedKey].completed += 1;
+                }
+              });
+
               const completionRate =
                 issueCount > 0
                   ? Math.round((finishedCount / issueCount) * 100)
                   : 0;
+
+              const weeklyActivity = weekTemplate.map(({ key }) => ({
+                dateKey: key,
+                created: weekMap[key]?.created ?? 0,
+                completed: weekMap[key]?.completed ?? 0,
+              }));
 
               return {
                 id: projectId,
@@ -260,6 +489,10 @@ const ProjectListPage = () => {
                 isArchived: data.isArchived || false,
                 lastViewedAt: data.lastViewedAt || null,
                 order: data.order ?? 0,
+                workflow,
+                categoryCounts,
+                priorityCounts,
+                weeklyActivity,
               } as Project;
             })
           );
@@ -386,6 +619,7 @@ const ProjectListPage = () => {
         isArchived: false,
         lastViewedAt: new Date().toISOString(),
         order: maxOrder + 1,
+        workflow: [...DEFAULT_WORKFLOW],
       });
       setErrorMessage("");
       setNewProjectName("");
@@ -538,12 +772,37 @@ const ProjectListPage = () => {
                 : "-"}
             </MetricCaption>
           </MetricCard>
+          <MetricCard>
+            <MetricLabel>주요 카테고리</MetricLabel>
+            <MetricValue>{topCategory ? topCategory.category : "-"}</MetricValue>
+            <MetricCaption>
+              {topCategory
+                ? `${topCategory.ratio}% · ${topCategory.count}건`
+                : "최근 7일 기준 데이터 없음"}
+            </MetricCaption>
+          </MetricCard>
+          <MetricCard>
+            <MetricLabel>우선순위 집중</MetricLabel>
+            <MetricValue>{topPriority ? topPriority.priority : "-"}</MetricValue>
+            <MetricCaption>
+              {topPriority
+                ? `${topPriority.ratio}% (${topPriority.count}건)`
+                : "등록된 이슈가 없습니다."}
+            </MetricCaption>
+          </MetricCard>
+          <MetricCard>
+            <MetricLabel>주간 처리량</MetricLabel>
+            <MetricValue>{totalCompletedThisWeek}</MetricValue>
+            <MetricCaption>
+              생성 {totalCreatedThisWeek}건 · 완료 {totalCompletedThisWeek}건
+            </MetricCaption>
+          </MetricCard>
         </DashboardGrid>
         <DashboardSplit>
           <TrendCard>
             <TrendTitle>완료율 상위 프로젝트</TrendTitle>
             {completionLeaders.length === 0 ? (
-              <MetricCaption>완료 데이터가 없습니다.</MetricCaption>
+              <MetricEmptyState>완료 데이터가 없습니다.</MetricEmptyState>
             ) : (
               <TrendList>
                 {completionLeaders.map((project) => (
@@ -559,9 +818,55 @@ const ProjectListPage = () => {
             )}
           </TrendCard>
           <TrendCard>
+            <TrendTitle>카테고리 상위 5</TrendTitle>
+            {categorySummary.length === 0 ? (
+              <MetricEmptyState>카테고리 데이터가 없습니다.</MetricEmptyState>
+            ) : (
+              <TrendList>
+                {categorySummary.map((entry) => (
+                  <TrendItem key={entry.category}>
+                    <TrendLabelRow>
+                      <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <LegendDot color={entry.color} />
+                        {entry.category}
+                      </span>
+                      <span>
+                        {entry.count}건 ({entry.ratio}%)
+                      </span>
+                    </TrendLabelRow>
+                    <ColoredTrendBar width={entry.ratio} color={entry.color} />
+                  </TrendItem>
+                ))}
+              </TrendList>
+            )}
+          </TrendCard>
+          <TrendCard>
+            <TrendTitle>우선순위 분포</TrendTitle>
+            {prioritySummary.length === 0 ? (
+              <MetricEmptyState>우선순위 데이터가 없습니다.</MetricEmptyState>
+            ) : (
+              <TrendList>
+                {prioritySummary.map((entry) => (
+                  <TrendItem key={entry.priority}>
+                    <TrendLabelRow>
+                      <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <LegendDot color={entry.color} />
+                        {entry.priority}
+                      </span>
+                      <span>
+                        {entry.count}건 ({entry.ratio}%)
+                      </span>
+                    </TrendLabelRow>
+                    <ColoredTrendBar width={entry.ratio} color={entry.color} />
+                  </TrendItem>
+                ))}
+              </TrendList>
+            )}
+          </TrendCard>
+          <TrendCard>
             <TrendTitle>이슈 볼륨 Top 5</TrendTitle>
             {issueLeaders.length === 0 ? (
-              <MetricCaption>등록된 프로젝트가 없습니다.</MetricCaption>
+              <MetricEmptyState>등록된 프로젝트가 없습니다.</MetricEmptyState>
             ) : (
               <TrendList>
                 {(() => {
@@ -587,9 +892,50 @@ const ProjectListPage = () => {
             )}
           </TrendCard>
           <TrendCard>
+            <TrendTitle>주간 생성·해결 추세</TrendTitle>
+            {weeklyTrend.every(
+              (item) => item.created === 0 && item.completed === 0
+            ) ? (
+              <MetricEmptyState>최근 7일간 활동이 없습니다.</MetricEmptyState>
+            ) : (
+              <TrendList>
+                {weeklyTrend.map((point) => (
+                  <TrendItem key={point.dateKey}>
+                    <TrendLabelRow>
+                      <span>{point.label}</span>
+                      <span>
+                        생성 {point.created} · 해결 {point.completed}
+                      </span>
+                    </TrendLabelRow>
+                    <DualBar>
+                      <DualBarSegment
+                        width={(point.created / maxWeeklyValue) * 100}
+                        color="#3b82f6"
+                        aria-label={`생성 ${point.created}건`}
+                      />
+                      <DualBarSegment
+                        width={(point.completed / maxWeeklyValue) * 100}
+                        color="#22c55e"
+                        aria-label={`해결 ${point.completed}건`}
+                      />
+                    </DualBar>
+                  </TrendItem>
+                ))}
+              </TrendList>
+            )}
+            <TrendLegend>
+              <TrendLegendItem>
+                <LegendDot color="#3b82f6" /> 생성
+              </TrendLegendItem>
+              <TrendLegendItem>
+                <LegendDot color="#22c55e" /> 해결
+              </TrendLegendItem>
+            </TrendLegend>
+          </TrendCard>
+          <TrendCard>
             <TrendTitle>최근 열람 활동</TrendTitle>
             {recentActivity.length === 0 ? (
-              <MetricCaption>최근 열람 기록이 없습니다.</MetricCaption>
+              <MetricEmptyState>최근 열람 기록이 없습니다.</MetricEmptyState>
             ) : (
               <ActivityList>
                 {recentActivity.map((project) => (
@@ -764,7 +1110,10 @@ const ProjectListPage = () => {
         isOpen={isActivityOpen}
         onClose={() => setIsActivityOpen(false)}
         currentUserId={auth.currentUser?.uid}
-        projectIds={projects.map((project) => project.id)}
+        projects={projects.map((project) => ({
+          id: project.id,
+          name: project.name,
+        }))}
         onUnreadChange={setUnreadActivityCount}
       />
       <ToastContainer position="top-center" autoClose={2500} />

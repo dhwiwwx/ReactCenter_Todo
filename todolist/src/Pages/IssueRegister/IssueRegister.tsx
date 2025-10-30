@@ -56,6 +56,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { logActivity } from "../../utils/activity";
+import { useProjectView } from "../../context/ProjectViewContext";
 
 interface OptionType {
   value: string;
@@ -80,6 +81,8 @@ function IssueRegister() {
   const [projectName, setProjectName] = useState<string>("");
 
   const navigate = useNavigate();
+  const { workflow } = useProjectView();
+  const defaultStatus = workflow[0] ?? "할 일";
 
   const customSelectStyles = {
     control: (provided: any, state: any) => ({
@@ -251,7 +254,7 @@ function IssueRegister() {
         deadline: deadline?.toISOString(),
         createdAt: Timestamp.now(),
         createdAtFormatted,
-        status: "할 일",
+        status: defaultStatus,
       });
       if (currentUser) {
         const actorName = currentUser.displayName || currentUser.email || "사용자";

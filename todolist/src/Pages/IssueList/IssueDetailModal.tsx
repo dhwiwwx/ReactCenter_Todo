@@ -22,6 +22,7 @@ import {
 import { db, auth } from "../../Firebase/firebase";
 import { doc, updateDoc, arrayUnion } from "firebase/firestore";
 import { logActivity } from "../../utils/activity";
+import { useProjectView } from "../../context/ProjectViewContext";
 
 interface Comment {
   id: string;
@@ -51,7 +52,10 @@ interface Props {
   onClose: () => void;
   onEdit: (id: string, issue: Issue) => void;
   onDelete: (id: string) => void;
-  onStatusChange?: (newStatus: string, previousStatus: string) => void;
+  onStatusChange?: (
+    newStatus: string,
+    previousStatus: string
+  ) => Promise<void> | void;
   projectMembers?: string[];
 }
 
@@ -70,6 +74,8 @@ export default function IssueDetailModal({
   const [editIndex, setEditIndex] = useState<number | null>(null);
   const [editText, setEditText] = useState("");
   const currentUser = auth.currentUser;
+  const { workflow } = useProjectView();
+  const statusOptions = workflow.length > 0 ? workflow : ["할 일"];
 
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
@@ -108,14 +114,14 @@ export default function IssueDetailModal({
   };
 
   const handleStatusChange = async (newStatus: string) => {
+    const previousStatus = status;
+    setStatus(newStatus);
     try {
-      const previousStatus = status;
-      await updateDoc(doc(db, "issues", issue.id), { status: newStatus });
-      setStatus(newStatus);
-      onStatusChange?.(newStatus, previousStatus);
+      await onStatusChange?.(newStatus, previousStatus);
     } catch (err) {
-      alert("상태 변경 실패");
       console.error(err);
+      setStatus(previousStatus);
+      alert("상태 변경 실패");
     }
   };
 
@@ -214,9 +220,11 @@ export default function IssueDetailModal({
             value={status}
             onChange={(e) => handleStatusChange(e.target.value)}
           >
-            <option value="할 일">할 일</option>
-            <option value="진행 중">진행 중</option>
-            <option value="완료">완료</option>
+            {statusOptions.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
           </StatusSelect>
         </StatusRow>
 

@@ -132,3 +132,153 @@ export const SaveButton = styled.button`
     width: 100%;
   }
 `;
+
+export const AvatarWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+`;
+
+export const AvatarImage = styled.img`
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+`;
+
+export const AvatarPlaceholder = styled.div`
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  font-weight: 600;
+  color: #e5e7ff;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.6), rgba(56, 189, 248, 0.6));
+  border: 3px solid rgba(255, 255, 255, 0.15);
+`;
+
+export const AvatarButton = styled.button`
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.45);
+  background: rgba(148, 163, 184, 0.15);
+  color: #f8fafc;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.2s ease, border 0.2s ease;
+
+  &:hover:enabled {
+    background: rgba(99, 102, 241, 0.25);
+    border-color: rgba(99, 102, 241, 0.45);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+`;
+
+export const HiddenFileInput = styled.input`
+  display: none;
+`;
+
+export const SectionDivider = styled.hr`
+  width: 100%;
+  border: none;
+  border-top: 1px solid rgba(148, 163, 184, 0.2);
+  margin: 20px 0;
+`;
+
+export const SectionTitle = styled.h3`
+  width: 100%;
+  margin: 0 0 12px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #e2e8f0;
+`;
+
+export const ToggleRow = styled.div`
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  flex-wrap: wrap;
+`;
+
+export const ToggleLabel = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: #e5e7ff;
+  font-weight: 500;
+`;
+
+export const ToggleButton = styled.button<{ $active: boolean }>`
+  min-width: 80px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: none;
+  font-size: 13px;
+  font-weight: 600;
+  color: ${({ $active }) => ($active ? "#0f172a" : "#e2e8f0")};
+  background: ${({ $active }) =>
+    $active
+      ? "linear-gradient(135deg, #34d399, #22d3ee)"
+      : "rgba(148, 163, 184, 0.2)"};
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+
+  &:hover:enabled {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 16px rgba(15, 23, 42, 0.35);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+`;
+
+export const HistoryList = styled.ul`
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+`;
+
+export const HistoryItem = styled.li`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.4);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+
+  @media (max-width: 520px) {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+`;
+
+export const HistoryLabel = styled.span`
+  font-size: 13px;
+  color: rgba(226, 232, 240, 0.75);
+`;
+
+export const HistoryValue = styled.span`
+  font-size: 13px;
+  color: #ffffff;
+  font-weight: 500;
+`;

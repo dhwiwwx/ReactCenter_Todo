@@ -2,9 +2,12 @@ import React, {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
 } from "react";
+import { doc, onSnapshot } from "firebase/firestore";
+import { db } from "../Firebase/firebase";
 
 type ViewMode = "list" | "kanban";
 
@@ -13,6 +16,7 @@ interface ProjectViewContextValue {
   viewMode: ViewMode;
   setViewMode: (mode: ViewMode | ((prev: ViewMode) => ViewMode)) => void;
   toggleViewMode: () => void;
+  workflow: string[];
 }
 
 const ProjectViewContext = createContext<ProjectViewContextValue | null>(null);
@@ -21,6 +25,8 @@ interface ProviderProps {
   projectId: string;
   children: React.ReactNode;
 }
+
+const DEFAULT_WORKFLOW = ["할 일", "진행 중", "완료"] as const;
 
 const getInitialViewMode = (projectId: string): ViewMode => {
   if (typeof window === "undefined") {
@@ -39,6 +45,39 @@ export const ProjectViewProvider: React.FC<ProviderProps> = ({
   const [viewMode, setViewModeState] = useState<ViewMode>(() =>
     getInitialViewMode(projectId)
   );
+  const [workflow, setWorkflow] = useState<string[]>([...DEFAULT_WORKFLOW]);
+
+  useEffect(() => {
+    const projectRef = doc(db, "projects", projectId);
+    const unsubscribe = onSnapshot(
+      projectRef,
+      (snapshot) => {
+        const data = snapshot.data() as { workflow?: string[] } | undefined;
+        if (!data?.workflow || !Array.isArray(data.workflow)) {
+          setWorkflow([...DEFAULT_WORKFLOW]);
+          return;
+        }
+
+        const sanitized = data.workflow
+          .map((status) =>
+            typeof status === "string" ? status.trim() : ""
+          )
+          .filter((status) => status.length > 0);
+
+        if (sanitized.length === 0) {
+          setWorkflow([...DEFAULT_WORKFLOW]);
+          return;
+        }
+
+        setWorkflow(sanitized);
+      },
+      () => {
+        setWorkflow([...DEFAULT_WORKFLOW]);
+      }
+    );
+
+    return () => unsubscribe();
+  }, [projectId]);
 
   const setViewMode = useCallback(
     (mode: ViewMode | ((prev: ViewMode) => ViewMode)) => {
@@ -58,8 +97,8 @@ export const ProjectViewProvider: React.FC<ProviderProps> = ({
   }, [setViewMode]);
 
   const value = useMemo(
-    () => ({ projectId, viewMode, setViewMode, toggleViewMode }),
-    [projectId, viewMode, setViewMode, toggleViewMode]
+    () => ({ projectId, viewMode, setViewMode, toggleViewMode, workflow }),
+    [projectId, viewMode, setViewMode, toggleViewMode, workflow]
   );
 
   return (

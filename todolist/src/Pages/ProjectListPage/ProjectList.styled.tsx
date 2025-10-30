@@ -54,7 +54,11 @@ export const DashboardSubtitle = styled.p`
 export const DashboardGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 16px;
+  gap: clamp(12px, 3vw, 16px);
+
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+  }
 `;
 
 export const MetricCard = styled.div`
@@ -90,14 +94,18 @@ export const MetricCaption = styled.span`
 export const DashboardSplit = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 16px;
+  gap: clamp(14px, 4vw, 20px);
+
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+  }
 `;
 
 export const TrendCard = styled.div`
   background-color: rgba(29, 31, 68, 0.9);
   border: 1px solid ${({ theme }) => theme.colors.cardBorder};
   border-radius: 16px;
-  padding: 20px;
+  padding: clamp(16px, 4vw, 20px);
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -143,6 +151,16 @@ export const TrendBar = styled.span<{ width: number }>`
   transition: width 0.3s ease;
 `;
 
+export const ColoredTrendBar = styled.span<{ width: number; color: string }>`
+  display: block;
+  height: 8px;
+  border-radius: 999px;
+  background: ${({ color }) => color};
+  width: ${({ width }) => Math.max(6, width)}%;
+  transition: width 0.3s ease;
+  opacity: 0.95;
+`;
+
 export const ActivityList = styled.ul`
   list-style: none;
   margin: 0;
@@ -171,6 +189,48 @@ export const ActivityTitle = styled.span`
 export const ActivityMeta = styled.span`
   font-size: 12px;
   color: #9da3d9;
+`;
+
+export const TrendLegend = styled.div`
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+  color: #cdd2ff;
+  font-size: 12px;
+`;
+
+export const TrendLegendItem = styled.span`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+`;
+
+export const LegendDot = styled.span<{ color: string }>`
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: ${({ color }) => color};
+`;
+
+export const DualBar = styled.div`
+  display: flex;
+  gap: 6px;
+  align-items: center;
+`;
+
+export const DualBarSegment = styled.span<{ width: number; color: string }>`
+  display: block;
+  height: 6px;
+  border-radius: 999px;
+  background: ${({ color }) => color};
+  width: ${({ width }) => Math.max(4, width)}%;
+  transition: width 0.3s ease;
+`;
+
+export const MetricEmptyState = styled.span`
+  font-size: 12px;
+  color: #9ba3d4;
 `;
 
 export const ProjectList = styled.ul`

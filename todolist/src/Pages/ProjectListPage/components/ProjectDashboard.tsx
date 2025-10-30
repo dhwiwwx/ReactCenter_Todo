@@ -29,14 +29,15 @@ interface Issue {
   deadline?: string;
 }
 
-const STATUS_ORDER = ["할 일", "진행 중", "완료"] as const;
 const PRIORITY_ORDER = ["긴급", "높음", "보통", "낮음"] as const;
 
-const STATUS_COLORS: Record<(typeof STATUS_ORDER)[number], string> = {
-  "할 일": "#60a5fa",
-  "진행 중": "#f97316",
-  완료: "#22c55e",
-};
+const DEFAULT_STATUS_COLORS = [
+  "#60a5fa",
+  "#f97316",
+  "#22c55e",
+  "#a855f7",
+  "#facc15",
+];
 
 const PRIORITY_COLORS: Record<string, string> = {
   긴급: "#ef4444",
@@ -46,11 +47,11 @@ const PRIORITY_COLORS: Record<string, string> = {
   기타: "#a855f7",
 };
 
-const normalizeStatus = (status?: string) => {
-  if (STATUS_ORDER.includes(status as (typeof STATUS_ORDER)[number])) {
-    return status as (typeof STATUS_ORDER)[number];
+const normalizeStatus = (status?: string, order: string[] = []) => {
+  if (status && order.includes(status)) {
+    return status;
   }
-  return "할 일";
+  return order[0] ?? "할 일";
 };
 
 const normalizePriority = (priority?: string) => {
@@ -71,9 +72,20 @@ const formatDateLabel = (date: Date) => format(date, "MM/dd");
 
 const ProjectDashboard: React.FC = () => {
   const { projectId } = useParams<{ projectId: string }>();
-  const { viewMode, toggleViewMode } = useProjectView();
+  const { viewMode, toggleViewMode, workflow } = useProjectView();
   const [issues, setIssues] = useState<Issue[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const statusOrder = useMemo(
+    () => (workflow.length > 0 ? workflow : ["할 일", "진행 중", "완료"]),
+    [workflow]
+  );
+  const statusColors = useMemo(() => {
+    return statusOrder.reduce<Record<string, string>>((acc, status, index) => {
+      acc[status] = DEFAULT_STATUS_COLORS[index % DEFAULT_STATUS_COLORS.length];
+      return acc;
+    }, {});
+  }, [statusOrder]);
+  const finalStatus = statusOrder[statusOrder.length - 1] ?? "완료";
 
   useEffect(() => {
     if (!projectId) {
@@ -113,12 +125,13 @@ const ProjectDashboard: React.FC = () => {
 
   const totalIssues = issues.length;
   const statusCounts = useMemo(() => {
-    return STATUS_ORDER.map((status) => ({
+    return statusOrder.map((status) => ({
       status,
-      count: issues.filter((issue) => normalizeStatus(issue.status) === status)
-        .length,
+      count: issues.filter(
+        (issue) => normalizeStatus(issue.status, statusOrder) === status
+      ).length,
     }));
-  }, [issues]);
+  }, [issues, statusOrder]);
 
   const priorityDistribution = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -134,8 +147,10 @@ const ProjectDashboard: React.FC = () => {
 
   const completedCount = useMemo(
     () =>
-      issues.filter((issue) => normalizeStatus(issue.status) === "완료").length,
-    [issues]
+      issues.filter(
+        (issue) => normalizeStatus(issue.status, statusOrder) === finalStatus
+      ).length,
+    [issues, statusOrder, finalStatus]
   );
   const completionRate = totalIssues
     ? Math.round((completedCount / totalIssues) * 100)
@@ -146,8 +161,8 @@ const ProjectDashboard: React.FC = () => {
     return Array.from({ length: 7 }).map((_, index) => {
       const date = addDays(today, index);
       const remaining = issues.filter((issue) => {
-        const status = normalizeStatus(issue.status);
-        if (status === "완료") {
+        const status = normalizeStatus(issue.status, statusOrder);
+        if (status === finalStatus) {
           return false;
         }
         const deadline = parseDeadline(issue.deadline);
@@ -168,7 +183,7 @@ const ProjectDashboard: React.FC = () => {
         due: dueToday,
       };
     });
-  }, [issues]);
+  }, [issues, statusOrder, finalStatus]);
 
   return (
     <DashboardWrapper>
@@ -212,7 +227,7 @@ const ProjectDashboard: React.FC = () => {
                   {statusCounts.map((entry) => (
                     <Cell
                       key={entry.status}
-                      fill={STATUS_COLORS[entry.status]}
+                      fill={statusColors[entry.status]}
                     />
                   ))}
                 </Bar>

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Container,
   List,
@@ -52,6 +52,7 @@ import {
   doc,
   where,
   updateDoc,
+  Timestamp,
 } from "firebase/firestore";
 import IssueDetailModal from "./IssueDetailModal";
 import { Circles } from "react-loader-spinner";
@@ -80,9 +81,6 @@ interface Comment {
   authorId: string;
 }
 
-const STATUS_ORDER = ["할 일", "진행 중", "완료"] as const;
-type CoreStatus = (typeof STATUS_ORDER)[number];
-
 function IssueList() {
   const [issues, setIssues] = useState<Issue[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -94,13 +92,15 @@ function IssueList() {
   const LOAD_INCREMENT = 10;
   const [visibleCount, setVisibleCount] = useState(LOAD_INCREMENT);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
-  const { viewMode, setViewMode } = useProjectView();
+  const { viewMode, setViewMode, workflow } = useProjectView();
   const [draggedIssueId, setDraggedIssueId] = useState<string | null>(null);
-  const [dragOverStatus, setDragOverStatus] = useState<CoreStatus | null>(null);
+  const [dragOverStatus, setDragOverStatus] = useState<string | null>(null);
   const [projectMembers, setProjectMembers] = useState<string[]>([]);
   const [projectName, setProjectName] = useState<string>("");
   const navigate = useNavigate();
   const { projectId } = useParams<{ projectId: string }>();
+  const defaultStatus = workflow[0] ?? "할 일";
+  const finalStatus = workflow[workflow.length - 1] ?? defaultStatus;
 
   useEffect(() => {
     if (!projectId) return;
@@ -123,12 +123,16 @@ function IssueList() {
     return () => unsubscribe();
   }, [projectId]);
 
-  const normalizeStatus = (status?: string): CoreStatus => {
-    if (STATUS_ORDER.includes(status as CoreStatus)) {
-      return status as CoreStatus;
-    }
-    return "할 일";
-  };
+  const normalizeStatus = useCallback(
+    (status?: string): string => {
+      const fallback = workflow[0] ?? "할 일";
+      if (status && workflow.includes(status)) {
+        return status;
+      }
+      return fallback;
+    },
+    [workflow]
+  );
 
   useEffect(() => {
     setIsLoading(true);
@@ -177,6 +181,12 @@ function IssueList() {
     }
   }, [viewMode, statusFilter]);
 
+  useEffect(() => {
+    if (statusFilter !== "전체" && !workflow.includes(statusFilter)) {
+      setStatusFilter("전체");
+    }
+  }, [workflow, statusFilter]);
+
   const handleCardClick = (issue: Issue) => setSelectedIssue(issue);
   const handleCloseModal = () => setSelectedIssue(null);
   const handleEditIssue = (id: string, issue: Issue) => {
@@ -212,8 +222,8 @@ function IssueList() {
 
   const handleStatusChange = async (
     id: string,
-    newStatus: CoreStatus,
-    previousStatus?: CoreStatus
+    newStatus: string,
+    previousStatus?: string
   ) => {
     const issue = issues.find((item) => item.id === id);
     const fromStatus = previousStatus ?? normalizeStatus(issue?.status);
@@ -226,8 +236,20 @@ function IssueList() {
         item.id === id ? { ...item, status: newStatus } : item
       )
     );
+    setSelectedIssue((prev) =>
+      prev && prev.id === id ? { ...prev, status: newStatus } : prev
+    );
     try {
-      await updateDoc(doc(db, "issues", id), { status: newStatus });
+      const updates: { status: string; completedAt?: Timestamp | null } = {
+        status: newStatus,
+      };
+      if (newStatus === finalStatus) {
+        updates.completedAt = Timestamp.now();
+      } else if (fromStatus === finalStatus) {
+        updates.completedAt = null;
+      }
+
+      await updateDoc(doc(db, "issues", id), updates);
       const currentUser = auth.currentUser;
       if (projectId && currentUser) {
         const actorName = currentUser.displayName || currentUser.email || "사용자";
@@ -254,7 +276,7 @@ function IssueList() {
     }
   };
 
-  const handleDropOnColumn = async (status: CoreStatus) => {
+  const handleDropOnColumn = async (status: string) => {
     if (!draggedIssueId) return;
     const draggedIssue = issues.find((issue) => issue.id === draggedIssueId);
     if (!draggedIssue) {
@@ -289,8 +311,9 @@ function IssueList() {
         const matchesSearch =
           title.toLowerCase().includes(searchInput.toLowerCase()) ||
           description.toLowerCase().includes(searchInput.toLowerCase());
+        const normalizedStatus = normalizeStatus(status);
         const matchesStatus =
-          statusFilter === "전체" || status === statusFilter;
+          statusFilter === "전체" || normalizedStatus === statusFilter;
         const matchesTag =
           tagFilter === "전체" || (tags && tags.includes(tagFilter));
         return matchesSearch && matchesStatus && matchesTag;
@@ -302,25 +325,37 @@ function IssueList() {
           return getPriorityValue(a.priority) - getPriorityValue(b.priority);
         return 0;
       });
-  }, [issues, searchInput, statusFilter, tagFilter, sortOrder]);
+  }, [
+    issues,
+    searchInput,
+    statusFilter,
+    tagFilter,
+    sortOrder,
+    normalizeStatus,
+  ]);
 
   const groupedIssues = useMemo(() => {
-    const map: Record<CoreStatus, Issue[]> = {
-      "할 일": [],
-      "진행 중": [],
-      "완료": [],
-    };
+    const base = workflow.reduce<Record<string, Issue[]>>((acc, status) => {
+      acc[status] = [];
+      return acc;
+    }, {});
+
     filtered.forEach((issue) => {
       const status = normalizeStatus(issue.status);
-      map[status].push(issue);
+      if (!base[status]) {
+        base[status] = [];
+      }
+      base[status].push(issue);
     });
-    return map;
-  }, [filtered]);
+
+    return base;
+  }, [filtered, workflow, normalizeStatus]);
 
   const progress =
     issues.length === 0
       ? 0
-      : (issues.filter((i) => i.status === "완료").length / issues.length) *
+      : (issues.filter((i) => normalizeStatus(i.status) === finalStatus).length /
+          issues.length) *
         100;
 
   const allTags = Array.from(new Set(issues.flatMap((i) => i.tags || [])));
@@ -384,9 +419,11 @@ function IssueList() {
           disabled={isKanbanView}
         >
           <option value="전체">전체</option>
-          <option value="할 일">할 일</option>
-          <option value="진행 중">진행 중</option>
-          <option value="완료">완료</option>
+          {workflow.map((status) => (
+            <option key={status} value={status}>
+              {status}
+            </option>
+          ))}
         </SortSelect>
         <SortSelect
           value={tagFilter}
@@ -426,12 +463,12 @@ function IssueList() {
             <KanbanEmpty>등록된 이슈가 없습니다.</KanbanEmpty>
           ) : (
             <KanbanContainer>
-              {STATUS_ORDER.map((status) => (
-                <KanbanColumn
-                  key={status}
-                  isActive={dragOverStatus === status}
-                  onDragOver={(e) => {
-                    e.preventDefault();
+          {(workflow.length ? workflow : [defaultStatus]).map((status) => (
+            <KanbanColumn
+              key={status}
+              isActive={dragOverStatus === status}
+              onDragOver={(e) => {
+                e.preventDefault();
                     e.dataTransfer.dropEffect = "move";
                   }}
                   onDrop={() => handleDropOnColumn(status)}
@@ -446,13 +483,15 @@ function IssueList() {
                 >
                   <KanbanHeader>
                     <KanbanTitle>{status}</KanbanTitle>
-                    <KanbanCount>{groupedIssues[status].length}건</KanbanCount>
+                    <KanbanCount>
+                      {(groupedIssues[status]?.length ?? 0)}건
+                    </KanbanCount>
                   </KanbanHeader>
                   <KanbanList>
-                    {groupedIssues[status].length === 0 ? (
+                    {(groupedIssues[status]?.length ?? 0) === 0 ? (
                       <KanbanEmpty>이슈가 없습니다.</KanbanEmpty>
                     ) : (
-                      groupedIssues[status].map((issue) => (
+                      (groupedIssues[status] ?? []).map((issue) => (
                         <KanbanCard
                           key={issue.id}
                           draggable
@@ -463,8 +502,8 @@ function IssueList() {
                           }}
                           onClick={() => handleCardClick(issue)}
                         >
-                          <StatusBadge status={issue.status || "할 일"}>
-                            {issue.status || "할 일"}
+                          <StatusBadge status={normalizeStatus(issue.status)}>
+                            {normalizeStatus(issue.status)}
                           </StatusBadge>
                           <CardTitle>{issue.title}</CardTitle>
                           <CardDescription>{issue.description}</CardDescription>
@@ -522,8 +561,8 @@ function IssueList() {
                   <Todo key={issue.id} onClick={() => handleCardClick(issue)}>
                     <NoSelect>
                       <CardWrapper>
-                        <StatusBadge status={issue.status || "할 일"}>
-                          {issue.status || "할 일"}
+                        <StatusBadge status={normalizeStatus(issue.status)}>
+                          {normalizeStatus(issue.status)}
                         </StatusBadge>
                         <CardTitle>{issue.title}</CardTitle>
                         <CardDescription>{issue.description}</CardDescription>
@@ -578,11 +617,7 @@ function IssueList() {
           onDelete={handleDeleteIssue}
           projectMembers={projectMembers}
           onStatusChange={(nextStatus, previousStatus) =>
-            handleStatusChange(
-              selectedIssue.id,
-              nextStatus as CoreStatus,
-              previousStatus as CoreStatus
-            )
+            handleStatusChange(selectedIssue.id, nextStatus, previousStatus)
           }
         />
       )}
