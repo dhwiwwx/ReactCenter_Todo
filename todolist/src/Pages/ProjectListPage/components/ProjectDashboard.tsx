@@ -35,7 +35,7 @@ const PRIORITY_ORDER = ["긴급", "높음", "보통", "낮음"] as const;
 const STATUS_COLORS: Record<(typeof STATUS_ORDER)[number], string> = {
   "할 일": "#60a5fa",
   "진행 중": "#f97316",
-  "완료": "#22c55e",
+  완료: "#22c55e",
 };
 
 const PRIORITY_COLORS: Record<string, string> = {
@@ -90,10 +90,15 @@ const ProjectDashboard: React.FC = () => {
     const unsubscribe = onSnapshot(
       q,
       (snapshot) => {
-        const next = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...(doc.data() as Issue),
-        }));
+        const next = snapshot.docs.map((doc) => {
+          // Firestore 문서에서 id 중복 방지
+          const { id: _ignored, ...rest } = doc.data() as Issue;
+          return {
+            ...rest,
+            id: doc.id, // Firestore 문서의 id를 최종적으로 사용
+          };
+        });
+
         setIssues(next);
         setIsLoading(false);
       },
@@ -129,8 +134,7 @@ const ProjectDashboard: React.FC = () => {
 
   const completedCount = useMemo(
     () =>
-      issues.filter((issue) => normalizeStatus(issue.status) === "완료")
-        .length,
+      issues.filter((issue) => normalizeStatus(issue.status) === "완료").length,
     [issues]
   );
   const completionRate = totalIssues
@@ -206,7 +210,10 @@ const ProjectDashboard: React.FC = () => {
                 <Tooltip />
                 <Bar dataKey="count" radius={[6, 6, 0, 0]}>
                   {statusCounts.map((entry) => (
-                    <Cell key={entry.status} fill={STATUS_COLORS[entry.status]} />
+                    <Cell
+                      key={entry.status}
+                      fill={STATUS_COLORS[entry.status]}
+                    />
                   ))}
                 </Bar>
               </BarChart>
@@ -230,7 +237,10 @@ const ProjectDashboard: React.FC = () => {
                   {priorityDistribution.map((entry) => (
                     <Cell
                       key={entry.priority}
-                      fill={PRIORITY_COLORS[entry.priority] ?? PRIORITY_COLORS["기타"]}
+                      fill={
+                        PRIORITY_COLORS[entry.priority] ??
+                        PRIORITY_COLORS["기타"]
+                      }
                     />
                   ))}
                 </Pie>
