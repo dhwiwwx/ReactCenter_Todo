@@ -87,10 +87,12 @@ function IssueRegister() {
   const customSelectStyles = {
     control: (provided: any, state: any) => ({
       ...provided,
-      backgroundColor: "rgba(248, 250, 252, 0.9)",
-      borderColor: state.isFocused ? "#6366f1" : "rgba(148, 163, 184, 0.5)",
+      backgroundColor: "rgba(31, 31, 61, 0.85)",
+      borderColor: state.isFocused
+        ? "#6366f1"
+        : "rgba(148, 163, 184, 0.35)",
       boxShadow: state.isFocused
-        ? "0 0 0 4px rgba(99, 102, 241, 0.15)"
+        ? "0 0 0 4px rgba(99, 102, 241, 0.2)"
         : "none",
       borderRadius: 12,
       minHeight: "48px",
@@ -102,32 +104,35 @@ function IssueRegister() {
     }),
     option: (provided: any, state: any) => ({
       ...provided,
-      backgroundColor: state.isFocused ? "rgba(99, 102, 241, 0.08)" : "#fff",
-      color: "#1f2937",
+      backgroundColor: state.isFocused
+        ? "rgba(99, 102, 241, 0.22)"
+        : "rgba(31, 31, 61, 0.98)",
+      color: "#f8fafc",
       padding: "10px 14px",
       fontSize: "14px",
       cursor: "pointer",
     }),
     singleValue: (provided: any) => ({
       ...provided,
-      color: "#1f2937",
+      color: "#f8fafc",
       fontWeight: 600,
     }),
     placeholder: (provided: any) => ({
       ...provided,
-      color: "#9ca3af",
+      color: "#cbd5f5",
       fontSize: "14px",
     }),
     menu: (provided: any) => ({
       ...provided,
       borderRadius: 12,
-      boxShadow: "0 18px 32px rgba(15, 23, 42, 0.12)",
+      backgroundColor: "rgba(31, 31, 61, 0.98)",
+      boxShadow: "0 18px 32px rgba(4, 6, 28, 0.35)",
       zIndex: 6,
       overflow: "hidden",
     }),
     input: (provided: any) => ({
       ...provided,
-      color: "#1f2937",
+      color: "#f8fafc",
     }),
   };
 
