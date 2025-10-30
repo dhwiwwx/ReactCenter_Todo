@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import {
   RegisterContainer,
@@ -18,6 +18,9 @@ import {
 } from "../IssueRegister/IssueRegister.styled";
 import { db } from "../../Firebase/firebase";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { useProjectView } from "../../context/ProjectViewContext";
+
+const DEFAULT_STATUS_SEQUENCE = ["할 일", "진행 중", "완료"] as const;
 
 function IssueEdit() {
   const { id } = useParams<{ id: string }>();
@@ -36,6 +39,12 @@ function IssueEdit() {
   const [projectId, setProjectId] = useState<string>("");
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState<string>("");
+  const { workflow } = useProjectView();
+  const statusOptions = useMemo(
+    () =>
+      workflow.length > 0 ? workflow : [...DEFAULT_STATUS_SEQUENCE],
+    [workflow]
+  );
 
   useEffect(() => {
     const applyData = (data: any) => {
@@ -46,7 +55,7 @@ function IssueEdit() {
       setPriority(data.priority || "중간");
       setCategory(data.category || "버그");
       setDeadline(data.deadline ? new Date(data.deadline) : null); // ✅ 날짜 변환
-      setStatus(data.status || "할 일");
+      setStatus(data.status || statusOptions[0]);
       setProjectId(data.projectId || "");
       setTags(data.tags || []);
     };
@@ -66,7 +75,7 @@ function IssueEdit() {
       };
       fetchIssue();
     }
-  }, [id, navigate, passedIssue]);
+  }, [id, navigate, passedIssue, statusOptions]);
 
   const validateForm = () => {
     if (!title.trim()) return "제목을 입력해주세요.";
@@ -85,6 +94,14 @@ function IssueEdit() {
       }
     }
   };
+
+  useEffect(() => {
+    const options =
+      workflow.length > 0 ? workflow : [...DEFAULT_STATUS_SEQUENCE];
+    if (!options.includes(status)) {
+      setStatus(options[0]);
+    }
+  }, [workflow, status]);
 
   const handleUpdate = async () => {
     const errorMsg = validateForm();
@@ -162,9 +179,11 @@ function IssueEdit() {
           </Select>
 
           <Select value={status} onChange={(e) => setStatus(e.target.value)}>
-            <option value="할 일">할 일</option>
-            <option value="진행 중">진행 중</option>
-            <option value="완료">완료</option>
+            {statusOptions.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
           </Select>
 
           <TagWrapper>

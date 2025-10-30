@@ -106,3 +106,79 @@ export const UnreadDot = styled.span`
   border-radius: 50%;
   background: #89a1ff;
 `;
+
+export const FilterBar = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 22px 16px;
+  border-bottom: 1px solid rgba(123, 130, 200, 0.25);
+  background: rgba(15, 17, 44, 0.45);
+`;
+
+export const FilterRow = styled.div`
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+`;
+
+export const FilterSelect = styled.select`
+  flex: 1;
+  min-width: 140px;
+  background: rgba(24, 27, 70, 0.9);
+  border: 1px solid rgba(123, 130, 200, 0.35);
+  color: #e2e8f0;
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 13px;
+  outline: none;
+  transition: border 0.2s ease, box-shadow 0.2s ease;
+
+  &:focus {
+    border-color: rgba(99, 102, 241, 0.6);
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+  }
+`;
+
+export const FilterSearch = styled.input`
+  flex: 1;
+  min-width: 180px;
+  background: rgba(23, 26, 68, 0.85);
+  border: 1px solid rgba(123, 130, 200, 0.35);
+  border-radius: 10px;
+  padding: 8px 12px;
+  color: #e2e8f0;
+  font-size: 13px;
+  outline: none;
+  transition: border 0.2s ease, box-shadow 0.2s ease;
+
+  &::placeholder {
+    color: rgba(226, 232, 240, 0.6);
+  }
+
+  &:focus {
+    border-color: rgba(99, 102, 241, 0.6);
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+  }
+`;
+
+export const ClearFiltersButton = styled.button`
+  background: none;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  color: #cbd5f5;
+  border-radius: 10px;
+  padding: 8px 14px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.2s ease, border 0.2s ease, color 0.2s ease;
+
+  &:hover:enabled {
+    background: rgba(99, 102, 241, 0.15);
+    border-color: rgba(99, 102, 241, 0.45);
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+`;
