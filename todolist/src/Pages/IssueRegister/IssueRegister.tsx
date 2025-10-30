@@ -4,6 +4,12 @@ import {
   RegisterContainer,
   RegisterBox,
   AccentBar,
+  IntroPanel,
+  IntroContent,
+  IntroTitle,
+  IntroDescription,
+  IntroHighlights,
+  Highlight,
   RegisterHeader,
   HeaderTop,
   RegisterTitle,
@@ -277,6 +283,29 @@ function IssueRegister() {
     <RegisterContainer>
       <RegisterBox>
         <AccentBar />
+        <IntroPanel>
+          <IntroContent>
+            <IntroTitle>등록 전에 맥락을 정리해 보세요</IntroTitle>
+            <IntroDescription>
+              핵심 배경과 기대 결과를 한 번 더 점검하면 팀이 더 빠르게 대응할 수 있어요.
+              아래 항목을 참고하여 가장 중요한 정보를 강조해 주세요.
+            </IntroDescription>
+            <IntroHighlights>
+              <Highlight variant="context">
+                <span>🧭</span>
+                문제 상황과 재현 경로를 명확히 기록
+              </Highlight>
+              <Highlight variant="priority">
+                <span>⚡</span>
+                영향도와 긴급도를 기준으로 우선순위 선정
+              </Highlight>
+              <Highlight variant="collaboration">
+                <span>🤝</span>
+                관련 팀원이 빠르게 파악할 수 있도록 공유
+              </Highlight>
+            </IntroHighlights>
+          </IntroContent>
+        </IntroPanel>
         <RegisterHeader>
           <HeaderTop>
             <div>
