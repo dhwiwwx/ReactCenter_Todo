@@ -7,6 +7,12 @@ const priorityColors = {
   "낮음": "#22c55e",
 } as const;
 
+const highlightGradients = {
+  context: "linear-gradient(135deg, rgba(99, 102, 241, 0.18), rgba(129, 140, 248, 0.3))",
+  priority: "linear-gradient(135deg, rgba(236, 72, 153, 0.18), rgba(248, 113, 113, 0.28))",
+  collaboration: "linear-gradient(135deg, rgba(45, 212, 191, 0.2), rgba(20, 184, 166, 0.28))",
+} as const;
+
 export const RegisterContainer = styled.div`
   display: flex;
   flex-direction: column;
@@ -29,6 +35,72 @@ export const RegisterBox = styled.div`
   @media (max-width: 480px) {
     border-radius: 18px;
     padding: 24px 20px 32px;
+  }
+`;
+
+export const IntroPanel = styled.section`
+  position: relative;
+  padding: 26px clamp(22px, 4vw, 32px);
+  margin-bottom: clamp(26px, 4vw, 34px);
+  border-radius: 20px;
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.85), rgba(79, 70, 229, 0.92));
+  color: #f8fafc;
+  overflow: hidden;
+
+  &:before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 20% 20%, rgba(236, 72, 153, 0.4), transparent 45%),
+      radial-gradient(circle at 80% 30%, rgba(129, 140, 248, 0.35), transparent 50%),
+      radial-gradient(circle at 65% 85%, rgba(16, 185, 129, 0.4), transparent 55%);
+    opacity: 0.6;
+    pointer-events: none;
+  }
+`;
+
+export const IntroContent = styled.div`
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+`;
+
+export const IntroTitle = styled.h2`
+  margin: 0;
+  font-size: clamp(20px, 4vw, 26px);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+`;
+
+export const IntroDescription = styled.p`
+  margin: 0;
+  color: rgba(226, 232, 240, 0.88);
+  font-size: 15px;
+  line-height: 1.6;
+`;
+
+export const IntroHighlights = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+`;
+
+export const Highlight = styled.span<{ variant: keyof typeof highlightGradients }>`
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: ${({ variant }) => highlightGradients[variant]};
+  color: #f8fafc;
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  backdrop-filter: blur(6px);
+
+  span {
+    font-size: 16px;
   }
 `;
 
